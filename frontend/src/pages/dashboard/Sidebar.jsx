@@ -112,7 +112,7 @@ const Sidebar = ({ setActiveComponent }) => {
         </div>
 
         <span className="text-lg font-semibold  text-white whitespace-nowrap">
-        کلپ بوگسینگ ملت
+          چاپخانه اکبر{" "}
         </span>
       </header>
 
