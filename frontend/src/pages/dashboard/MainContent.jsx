@@ -9,11 +9,10 @@ import StaffManager from "./pages/StaffManager";
 import Incomes from "./pages/incomes";
 import Expenses from "./pages/Expenses";
 import BlockManager from "./pages/BlockManger";
-import Salaries from "./pages/Salaries";
-import Rent from "./pages/RentManager";
+import Salaries from "./pages/BillSummary";
 import CreateUser from "./pages/CreateUsers";
 import Residentialunites from "./pages/ResidentialUnites";
-import Fees from "./pages/Fees";
+
 import ActiveAthletes from "./pages/ActiveAthletes";
 import FinanceComponent from "./pages/Financial";
 import Orders from "./pages/Orders";

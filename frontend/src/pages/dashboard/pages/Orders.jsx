@@ -1,6 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
+import DigitalSection from "./DigitalSection";
+import OffsetSection from "./OffsetSection";
+import BillSummary from "./BillSummary";
+import PrintOrderBill from "./PrintOrderBill";
 
 const Orders = () => {
   const [record, setRecord] = useState({
@@ -10,101 +14,14 @@ const Orders = () => {
     total_money_digital: 0,
     total_offset: 0,
     total: 0,
+    recip: 0, // 💰 money received from customer
+    remained: 0, // 💵 money still unpaid
   });
 
-  // Handle customer input
-  const handleCustomerChange = (e) => {
-    const { name, value } = e.target;
-    setRecord({
-      ...record,
-      customer: { ...record.customer, [name]: value },
-    });
-  };
+  const [isBillOpen, setIsBillOpen] = useState(false);
 
-  // Add new digital entry
-  const addDigital = () => {
-    setRecord({
-      ...record,
-      digital: [
-        ...record.digital,
-        {
-          name: "",
-          quantity: "",
-          height: "",
-          weight: "",
-          area: "",
-          price_per_unit: "",
-          money: "",
-        },
-      ],
-    });
-  };
-
-  // Update digital entry (auto-calc but editable money)
-  const updateDigital = (index, field, value) => {
-    const updated = [...record.digital];
-    updated[index][field] = value;
-
-    const quantity = parseFloat(updated[index].quantity) || 0;
-    const height = parseFloat(updated[index].height) || 0;
-    const weight = parseFloat(updated[index].weight) || 0;
-    const price_per_unit = parseFloat(updated[index].price_per_unit) || 0;
-
-    // Auto-calculate area
-    const area = height * weight * quantity;
-    updated[index].area = area ? area.toFixed(2) : "";
-
-    // Auto-calculate money only if not editing money field
-    if (field !== "money") {
-      const money =  price_per_unit * area;
-      updated[index].money = money ? money.toFixed(2) : "";
-    }
-
-    setRecord({ ...record, digital: updated });
-  };
-
-  // Delete digital entry
-  const deleteDigital = (index) => {
-    const updated = record.digital.filter((_, i) => i !== index);
-    setRecord({ ...record, digital: updated });
-  };
-
-  // Add offset entry
-  const addOffset = () => {
-    setRecord({
-      ...record,
-      offset: [
-        ...record.offset,
-        { name: "", quantity: "", price_per_unit: "", money: "" },
-      ],
-    });
-  };
-
-  // Update offset entry (auto-calc but editable money)
-  const updateOffset = (index, field, value) => {
-    const updated = [...record.offset];
-    updated[index][field] = value;
-
-    const quantity = parseFloat(updated[index].quantity) || 0;
-    const price_per_unit = parseFloat(updated[index].price_per_unit) || 0;
-
-    // Auto-calculate money only if not editing money field
-    if (field !== "money") {
-      const money = quantity * price_per_unit;
-      updated[index].money = money ? money.toFixed(2) : "";
-    }
-
-    setRecord({ ...record, offset: updated });
-  };
-
-  // Delete offset entry
-  const deleteOffset = (index) => {
-    const updated = record.offset.filter((_, i) => i !== index);
-    setRecord({ ...record, offset: updated });
-  };
-
-  // Calculate totals
-  const calculateTotals = () => {
+  // 🧠 Automatically calculate totals whenever digital, offset, or recip changes
+  useEffect(() => {
     const totalDigital = record.digital.reduce(
       (sum, d) => sum + Number(d.money || 0),
       0
@@ -113,20 +30,36 @@ const Orders = () => {
       (sum, o) => sum + Number(o.money || 0),
       0
     );
+    const total = totalDigital + totalOffset;
 
-    setRecord({
-      ...record,
+    setRecord((prev) => ({
+      ...prev,
       total_money_digital: totalDigital.toFixed(2),
       total_offset: totalOffset.toFixed(2),
-      total: (totalDigital + totalOffset).toFixed(2),
+      total: total.toFixed(2),
+      remained: (total - Number(prev.recip || 0)).toFixed(2),
+    }));
+  }, [record.digital, record.offset, record.recip]); // 👈 watch for changes
+
+  const handleCustomerChange = (e) => {
+    const { name, value } = e.target;
+    setRecord({
+      ...record,
+      customer: { ...record.customer, [name]: value },
     });
   };
 
-  // Save to backend
+  const handleRecipChange = (e) => {
+    const value = Number(e.target.value || 0);
+    setRecord({
+      ...record,
+      recip: value,
+    });
+  };
+
   const saveRecord = async () => {
     try {
       console.log(record);
-      
       await axios.post("/api/records", record);
       Swal.fire("Success", "Record saved successfully", "success");
     } catch (err) {
@@ -136,7 +69,6 @@ const Orders = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* CUSTOMER INFO */}
       <h2 className="text-xl font-bold">Customer Information</h2>
       <div className="flex gap-4">
         <input
@@ -157,89 +89,53 @@ const Orders = () => {
         />
       </div>
 
-      {/* DIGITAL SECTION */}
-      <h2 className="text-xl font-bold mt-4">Digital Printing</h2>
-      <button
-        onClick={addDigital}
-        className="bg-green-500 text-white px-3 py-1 rounded"
-      >
-        + Add Digital Item
-      </button>
+      {/* Digital Printing Section */}
+      <DigitalSection record={record} setRecord={setRecord} />
 
-      {record.digital.map((d, i) => (
-        <div key={i} className="grid grid-cols-7 gap-2 mt-2">
-          {Object.keys(d).map((key) => (
-            <input
-              key={key}
-              placeholder={key}
-              value={d[key]}
-              onChange={(e) => updateDigital(i, key, e.target.value)}
-              className={`border p-1 rounded ${
-                key === "area" ? "bg-gray-100" : ""
-              }`}
-              disabled={key === "area"}
-            />
-          ))}
-          <button
-            onClick={() => deleteDigital(i)}
-            className="bg-red-500 text-white px-2 rounded"
-          >
-            X
-          </button>
-        </div>
-      ))}
+      {/* Offset Printing Section */}
+      <OffsetSection record={record} setRecord={setRecord} />
 
-      {/* OFFSET SECTION */}
-      <h2 className="text-xl font-bold mt-6">Offset Printing</h2>
-      <button
-        onClick={addOffset}
-        className="bg-green-500 text-white px-3 py-1 rounded"
-      >
-        + Add Offset Item
-      </button>
+      {/* Bill Summary */}
+      <BillSummary record={record} />
 
-      {record.offset.map((o, i) => (
-        <div key={i} className="grid grid-cols-5 gap-2 mt-2">
-          {Object.keys(o).map((key) => (
-            <input
-              key={key}
-              placeholder={key}
-              value={o[key]}
-              onChange={(e) => updateOffset(i, key, e.target.value)}
-              className={`border p-1 rounded`}
-            />
-          ))}
-          <button
-            onClick={() => deleteOffset(i)}
-            className="bg-red-500 text-white px-2 rounded"
-          >
-            X
-          </button>
-        </div>
-      ))}
-
-      {/* TOTAL SECTION */}
-      <div className="mt-6">
+      {/* 💰 Recip and Remained Fields */}
+      <div className="flex gap-4">
+        <input
+          type="number"
+          placeholder="Received Amount"
+          value={record.recip}
+          onChange={handleRecipChange}
+          className="border p-2 rounded w-1/2"
+        />
+        <input
+          type="number"
+          placeholder="Remained Amount"
+          value={record.remained}
+          readOnly
+          className="border p-2 rounded w-1/2 bg-gray-100 cursor-not-allowed"
+        />
         <button
-          onClick={calculateTotals}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          onClick={()=>saveRecord()}
+          className="bg-indigo-600 text-white px-4 py-2 rounded mt-4"
         >
-          Calculate Totals
+          Save Record
         </button>
-        <div className="mt-4 space-y-1">
-          <p>Total Digital: {record.total_money_digital}</p>
-          <p>Total Offset: {record.total_offset}</p>
-          <p className="font-bold">Total: {record.total}</p>
-        </div>
       </div>
 
-      {/* SAVE BUTTON */}
       <button
-        onClick={saveRecord}
-        className="bg-indigo-600 text-white px-4 py-2 rounded mt-4"
+        onClick={() => setIsBillOpen(true)}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
       >
-        Save Record
+        View Bill
       </button>
+
+      {isBillOpen && (
+        <PrintOrderBill
+          isOpen={isBillOpen}
+          onClose={() => setIsBillOpen(false)}
+          order={record}
+        />
+      )}
     </div>
   );
 };

@@ -3,7 +3,7 @@ import React, { useEffect, useState, useMemo } from "react"; // Added useMemo
 import axios from "axios";
 import { floors, months } from "./Hook/rentConstant"; // Ensure months is imported
 import AddCustomers from "./Hook/AddCustomer"; // Assuming this is used
-import PrintBillModal from "../pages/PrintBillModal"; // Adjust path if needed
+import PrintBillModal from "../pages/PrintOrderBill"; // Adjust path if needed
 import Swal from "sweetalert2";
 import { Printer } from "lucide-react"; // Removed ArrowDownToLine if unused
 import { useSelector } from "react-redux";
@@ -16,7 +16,6 @@ const CustomerDetailsTable = ({
   type, // 'rent' or 'service'
   setIsDetailFormOpen, // Pass this if AddCustomers needs it
 }) => {
-  
   const role = useSelector((state) => state.user.currentUser.role[0]);
   const [customers, setCustomers] = useState(data.customers_list || {});
   const [shopkeepers, setShopKeepers] = useState([]);
@@ -390,8 +389,7 @@ const CustomerDetailsTable = ({
             ثبت تغییرات
           </button>
           {/* AddCustomers Component */}
-          <span className={`${role == 3 ? "hidden" : ""
-            }`}>
+          <span className={`${role == 3 ? "hidden" : ""}`}>
             <AddCustomers
               type={type}
               data={data}
