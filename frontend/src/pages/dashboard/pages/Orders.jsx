@@ -5,6 +5,13 @@ import DigitalSection from "./DigitalSection";
 import OffsetSection from "./OffsetSection";
 import BillSummary from "./BillSummary";
 import PrintOrderBill from "./PrintOrderBill";
+import Pagination from "../pagination/Pagination.jsx";
+import {
+  getOrders,
+  createOrder,
+  updateOrder,
+  deleteOrder,
+} from "../services/ServiceManager.js";
 import {
   FaUser,
   FaPhone,
@@ -28,25 +35,31 @@ const Orders = () => {
     recip: 0,
     remained: 0,
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [orders, setOrders] = useState([]);
   const [isBillOpen, setIsBillOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null); // New state for selected order
   const [activeSection, setActiveSection] = useState("digital");
 
-  const fetchOrders = async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/orders`);
-      setOrders(response.data);
-      console.log(response.data);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    }
+  const fetchOrders = async (page = 1) => {
+    const data = await getOrders(page, 20);
+    setOrders(data.orders);
+    console.log(data);
+
+    setCurrentPage(data.currentPage);
+    setTotalPages(data.totalPages);
   };
 
+  const onPageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+      fetchOrders(pageNumber);
+    }
+  };
   useEffect(() => {
-    fetchOrders();
+    fetchOrders(currentPage);
   }, []);
-
   useEffect(() => {
     if (!record) return;
 
@@ -85,26 +98,25 @@ const Orders = () => {
     });
   };
 
-const saveRecord = async () => {
-  try {
-    await axios.post(`${BASE_URL}/orders`, record);
-    Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success"); // Success message in Dari
-    fetchOrders(); // Refresh the orders list after saving
-    setRecord({
-      customer: { name: "", phone_number: "" },
-      digital: [],
-      offset: [],
-      total_money_digital: 0,
-      total_money_offset: 0,
-      total: 0,
-      recip: 0,
-      remained: 0,
-    });
-  } catch (err) {
-    Swal.fire("خطا", "ثبت بیل موفقیت‌آمیز نبود", "error"); // Error message in Dari
-  }
-};
-
+  const saveRecord = async () => {
+    try {
+      await axios.post(`${BASE_URL}/orders`, record);
+      Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success"); // Success message in Dari
+      fetchOrders(); // Refresh the orders list after saving
+      setRecord({
+        customer: { name: "", phone_number: "" },
+        digital: [],
+        offset: [],
+        total_money_digital: 0,
+        total_money_offset: 0,
+        total: 0,
+        recip: 0,
+        remained: 0,
+      });
+    } catch (err) {
+      Swal.fire("خطا", "ثبت بیل موفقیت‌آمیز نبود", "error"); // Error message in Dari
+    }
+  };
 
   // Function to handle viewing bill for a specific order
   const handleViewBill = (order) => {
@@ -363,6 +375,7 @@ const saveRecord = async () => {
               )}
             </tbody>
           </table>
+          <Pagination currentPage={currentPage} totalPages={totalPages} on onPageChange={onPageChange} />
         </div>
       </div>
 

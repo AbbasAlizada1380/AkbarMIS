@@ -2,7 +2,6 @@
 import Dashboard from "./pages/dashboard";
 // import S_Transaction from "./pages/RentManager";
 import Report from "./pages/reports";
-import Setting from "./pages/setting";
 import FinanceComponent from "./pages/Financial";
 import Orders from "./pages/Orders";
 const MainContent = ({ activeComponent }) => {
@@ -28,22 +27,7 @@ const MainContent = ({ activeComponent }) => {
         return <Fees />;
       case "Orders":
         return <Orders />;
-      case "Blockes":
-        return <Residentialunites />;
-      case "StafFManager":
-        return <StaffManager />;
-      case "Expenses":
-        return <Expenses />;
-      case "Incomes":
-        return <Incomes />;
-      case "financial":
-        return <FinanceComponent />;
-      case "CreateUsers":
-        return <CreateUser />;
-      case "BlockesServices":
-        return <BlockManager />;
-      case "RentManger":
-        return <Rent />;
+
       default:
         return <Dashboard />;
     }
