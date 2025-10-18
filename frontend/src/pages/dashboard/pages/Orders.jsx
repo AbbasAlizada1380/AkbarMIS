@@ -5,6 +5,8 @@ import DigitalSection from "./DigitalSection";
 import OffsetSection from "./OffsetSection";
 import BillSummary from "./BillSummary";
 import PrintOrderBill from "./PrintOrderBill";
+import { FaCheck } from "react-icons/fa";
+import { ImCross } from "react-icons/im";
 import Pagination from "../pagination/Pagination.jsx";
 import {
   getOrders,
@@ -21,8 +23,9 @@ import {
   FaEye,
   FaPrint,
   FaLayerGroup,
+  FaEdit,
+  FaTimes,
 } from "react-icons/fa";
-const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const Orders = () => {
   const [record, setRecord] = useState({
@@ -39,14 +42,14 @@ const Orders = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [orders, setOrders] = useState([]);
   const [isBillOpen, setIsBillOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null); // New state for selected order
+  const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeSection, setActiveSection] = useState("digital");
+  const [editMode, setEditMode] = useState(false);
+  const [editingOrderId, setEditingOrderId] = useState(null);
 
   const fetchOrders = async (page = 1) => {
     const data = await getOrders(page, 20);
     setOrders(data.orders);
-    console.log(data);
-
     setCurrentPage(data.currentPage);
     setTotalPages(data.totalPages);
   };
@@ -57,9 +60,11 @@ const Orders = () => {
       fetchOrders(pageNumber);
     }
   };
+
   useEffect(() => {
     fetchOrders(currentPage);
   }, []);
+
   useEffect(() => {
     if (!record) return;
 
@@ -100,31 +105,91 @@ const Orders = () => {
 
   const saveRecord = async () => {
     try {
-      await axios.post(`${BASE_URL}/orders`, record);
-      Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success"); // Success message in Dari
-      fetchOrders(); // Refresh the orders list after saving
-      setRecord({
-        customer: { name: "", phone_number: "" },
-        digital: [],
-        offset: [],
-        total_money_digital: 0,
-        total_money_offset: 0,
-        total: 0,
-        recip: 0,
-        remained: 0,
-      });
+      if (editMode) {
+        // Update existing order
+        await updateOrder(editingOrderId, record);
+      } else {
+        // Create new order
+        await createOrder(record);
+      }
+
+      fetchOrders(currentPage);
+      resetForm();
     } catch (err) {
-      Swal.fire("خطا", "ثبت بیل موفقیت‌آمیز نبود", "error"); // Error message in Dari
+      Swal.fire(
+        "خطا",
+        editMode ? "ویرایش بیل موفقیت‌آمیز نبود" : "ثبت بیل موفقیت‌آمیز نبود",
+        "error"
+      );
     }
   };
 
-  // Function to handle viewing bill for a specific order
+  const resetForm = () => {
+    setRecord({
+      customer: { name: "", phone_number: "" },
+      digital: [],
+      offset: [],
+      total_money_digital: 0,
+      total_money_offset: 0,
+      total: 0,
+      recip: 0,
+      remained: 0,
+    });
+    setEditMode(false);
+    setEditingOrderId(null);
+    setActiveSection("digital");
+  };
+
+  const handleEditOrder = (order) => {
+    // Transform the order data to match the record structure
+    setRecord({
+      customer: {
+        name: order.customer?.name || order.name || "",
+        phone_number: order.customer?.phone_number || order.phone_number || "",
+      },
+      digital: order.digital || [],
+      offset: order.offset || [],
+      total_money_digital: order.total_money_digital || 0,
+      total_money_offset: order.total_money_offset || 0,
+      total: order.total || 0,
+      recip: order.recip || 0,
+      remained: order.remained || 0,
+    });
+    setEditMode(true);
+    setEditingOrderId(order.id);
+
+    // Scroll to the top of the form
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    const result = await Swal.fire({
+      title: "آیا مطمئن هستید؟",
+      text: "این عمل قابل بازگشت نیست!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "بله، حذف شود!",
+      cancelButtonText: "لغو",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deleteOrder(orderId);
+        Swal.fire("حذف شد!", "سفارش با موفقیت حذف شد.", "success");
+        fetchOrders(currentPage);
+      } catch (err) {
+        Swal.fire("خطا!", "حذف سفارش موفقیت‌آمیز نبود.", "error");
+      }
+    }
+  };
+
   const handleViewBill = (order) => {
     setSelectedOrder(order);
     setIsBillOpen(true);
   };
 
-  // Function to close bill and reset selected order
   const handleCloseBill = () => {
     setIsBillOpen(false);
     setSelectedOrder(null);
@@ -138,15 +203,36 @@ const Orders = () => {
           سیستم مدیریت سفارشات
         </h1>
         <p className="text-gray-600">مدیریت سفارش‌های مشتریان و خدمات چاپی</p>
+        {editMode && (
+          <div className="mt-4 p-4 bg-yellow-100 border border-yellow-400 rounded-xl">
+            <div className="flex items-center justify-center gap-2 text-yellow-800">
+              <FaEdit className="text-lg" />
+              <span className="font-semibold">
+                حالت ویرایش - در حال ویرایش سفارش #{editingOrderId}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Customer Information Card */}
       <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <FaUser className="text-blue-600 text-xl" />
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <FaUser className="text-blue-600 text-xl" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">معلومات مشتری</h2>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">معلومات مشتری</h2>
+          {editMode && (
+            <button
+              onClick={resetForm}
+              className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
+            >
+              <FaTimes className="text-sm" />
+              لغو ویرایش
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -287,10 +373,14 @@ const Orders = () => {
           <div className="flex items-end space-x-4">
             <button
               onClick={saveRecord}
-              className="flex items-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className={`flex items-center gap-3 px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                editMode
+                  ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+              } text-white`}
             >
               <FaSave className="text-lg" />
-              ذخیره اطلاعات
+              {editMode ? "ویرایش اطلاعات" : "ذخیره اطلاعات"}
             </button>
           </div>
         </div>
@@ -327,7 +417,10 @@ const Orders = () => {
                 <th className="border border-gray-300 px-4 py-2">دریافتی</th>
                 <th className="border border-gray-300 px-4 py-2">باقیمانده</th>
                 <th className="border border-gray-300 px-4 py-2">تاریخ</th>
-                <th className="border border-gray-300 px-4 py-2">بیل</th>
+                <th className="border border-gray-300 px-4 py-2">
+                  تحویل داده شده
+                </th>
+                <th className="border border-gray-300 px-4 py-2">عملیات</th>
               </tr>
             </thead>
             <tbody>
@@ -356,13 +449,32 @@ const Orders = () => {
                       {new Date(order.createdAt).toLocaleDateString("fa-AF")}
                     </td>
                     <td className="border border-gray-300 px-4 py-2">
-                      <button
-                        onClick={() => handleViewBill(order)}
-                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
-                      >
-                        <FaEye className="text-sm" />
-                        مشاهده فاکتور
-                      </button>
+                      {order.isDelivered ? <FaCheck /> : <ImCross />}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <div className="flex flex-col gap-2">
+                        <button
+                          onClick={() => handleViewBill(order)}
+                          className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
+                        >
+                          <FaEye className="text-sm" />
+                          مشاهده فاکتور
+                        </button>
+                        <button
+                          onClick={() => handleEditOrder(order)}
+                          className="flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
+                        >
+                          <FaEdit className="text-sm" />
+                          ویرایش
+                        </button>
+                        <button
+                          onClick={() => handleDeleteOrder(order.id)}
+                          className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
+                        >
+                          <FaTimes className="text-sm" />
+                          حذف
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -375,7 +487,11 @@ const Orders = () => {
               )}
             </tbody>
           </table>
-          <Pagination currentPage={currentPage} totalPages={totalPages} on onPageChange={onPageChange} />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
         </div>
       </div>
 

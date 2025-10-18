@@ -3,6 +3,17 @@ import Swal from "sweetalert2";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
+// ✅ Helper function for showing Swal messages
+const showAlert = (title, text, icon = "success") => {
+  Swal.fire({
+    title,
+    text,
+    icon,
+    confirmButtonText: "تایید",
+    timer: icon === "success" ? 1500 : null,
+  });
+};
+
 // ✅ Get all orders with pagination
 export const getOrders = async (page = 1, limit = 20) => {
   try {
@@ -12,6 +23,7 @@ export const getOrders = async (page = 1, limit = 20) => {
     return res.data;
   } catch (error) {
     console.error("❌ Error fetching orders:", error);
+    showAlert("خطا", "بارگذاری بیل‌ها موفقیت‌آمیز نبود", "error");
     throw error;
   }
 };
@@ -23,6 +35,7 @@ export const getOrderById = async (id) => {
     return res.data;
   } catch (error) {
     console.error("❌ Error fetching order:", error);
+    showAlert("خطا", "بیل موردنظر یافت نشد", "error");
     throw error;
   }
 };
@@ -30,11 +43,17 @@ export const getOrderById = async (id) => {
 // ✅ Create a new order
 export const createOrder = async (orderData) => {
   try {
+    if (!orderData.customer.name || orderData.customer.name.trim() === "") {
+      showAlert("خطا", "نام مشتری نمی‌تواند خالی باشد", "error");
+      return;
+    }
+
     const res = await axios.post(`${BASE_URL}/orders`, orderData);
-    Swal.fire("موفق", "بیل با موفقیت ثبت شد ✅", "success");
+    showAlert("موفق", "بیل با موفقیت ثبت شد ✅", "success");
     return res.data;
   } catch (error) {
-    Swal.fire("خطا", "خطا در ثبت بیل 😢", "error");
+    console.error(error);
+    showAlert("خطا", "خطا در ثبت بیل 😢", "error");
     throw error;
   }
 };
@@ -43,10 +62,11 @@ export const createOrder = async (orderData) => {
 export const updateOrder = async (id, orderData) => {
   try {
     const res = await axios.put(`${BASE_URL}/orders/${id}`, orderData);
-    Swal.fire("موفق", "بیل با موفقیت ویرایش شد ✏️", "success");
+    showAlert("موفق", "بیل با موفقیت ویرایش شد ✏️", "success");
     return res.data;
   } catch (error) {
-    Swal.fire("خطا", "خطا در ویرایش بیل 😢", "error");
+    console.error(error);
+    showAlert("خطا", "خطا در ویرایش بیل 😢", "error");
     throw error;
   }
 };
@@ -55,9 +75,10 @@ export const updateOrder = async (id, orderData) => {
 export const deleteOrder = async (id) => {
   try {
     await axios.delete(`${BASE_URL}/orders/${id}`);
-    Swal.fire("حذف شد", "بیل با موفقیت حذف شد 🗑️", "success");
+    showAlert("حذف شد", "بیل با موفقیت حذف شد 🗑️", "success");
   } catch (error) {
-    Swal.fire("خطا", "خطا در حذف بیل 😢", "error");
+    console.error(error);
+    showAlert("خطا", "خطا در حذف بیل 😢", "error");
     throw error;
   }
 };

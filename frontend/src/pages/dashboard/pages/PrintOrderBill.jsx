@@ -143,7 +143,7 @@ const PrintOrderBill = ({ isOpen, onClose, order }) => {
           <div className="flex justify-center items-center gap-2 mb-1">
             <FaPhone /> <span>تماس: 079xxxxxxx</span>
           </div>
-          <p>تشکر از اعتماد شما به تمادو پرنت شاپ!</p>
+          <p>تشکر از اعتماد شما به مطبعه اکبر  !</p>
         </div>
       </div>
 
