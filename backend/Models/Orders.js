@@ -30,6 +30,10 @@ export const Order = sequelize.define(
       type: DataTypes.FLOAT,
       defaultValue: 0,
     },
+    isDelivered: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: 0,
+    },
   },
   {
     tableName: "orders",

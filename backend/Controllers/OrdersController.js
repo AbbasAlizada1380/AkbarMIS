@@ -22,6 +22,7 @@ export const createOrder = async (req, res) => {
       total,
       total_money_digital,
       total_money_Offset: total_money_offset,
+      isDelivered: false,
     });
 
     // Create digital items
@@ -89,7 +90,6 @@ export const getOrders = async (req, res) => {
     res.status(500).json({ message: "Error fetching orders", error });
   }
 };
-
 
 // Get single order by ID
 export const getOrderById = async (req, res) => {
@@ -163,6 +163,29 @@ export const updateOrder = async (req, res) => {
       ],
     });
 
+    res.json(updatedOrder);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error updating order", error });
+  }
+};
+
+
+// ✅ Partial update controller
+export const updateOrderProperties = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body; // Only fields sent in body will be updated
+
+    // Find the order
+    const order = await Order.findByPk(id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    // Update only the fields provided
+    await order.update(updateData);
+
+    // Return updated order
+    const updatedOrder = await Order.findByPk(id);
     res.json(updatedOrder);
   } catch (error) {
     console.error(error);
