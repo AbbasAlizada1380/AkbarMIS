@@ -15,6 +15,7 @@ import {
   FaPrint,
   FaLayerGroup,
 } from "react-icons/fa";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const Orders = () => {
   const [record, setRecord] = useState({
@@ -22,21 +23,38 @@ const Orders = () => {
     digital: [],
     offset: [],
     total_money_digital: 0,
-    total_offset: 0,
+    total_money_offset: 0,
     total: 0,
     recip: 0,
     remained: 0,
   });
-
+  const [orders, setOrders] = useState([]);
   const [isBillOpen, setIsBillOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("digital"); // 'digital' or 'offset'
+  const [selectedOrder, setSelectedOrder] = useState(null); // New state for selected order
+  const [activeSection, setActiveSection] = useState("digital");
+
+  const fetchOrders = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/orders`);
+      setOrders(response.data);
+      console.log(response.data);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
 
   useEffect(() => {
-    const totalDigital = record.digital.reduce(
+    fetchOrders();
+  }, []);
+
+  useEffect(() => {
+    if (!record) return;
+
+    const totalDigital = (record.digital || []).reduce(
       (sum, d) => sum + Number(d.money || 0),
       0
     );
-    const totalOffset = record.offset.reduce(
+    const totalOffset = (record.offset || []).reduce(
       (sum, o) => sum + Number(o.money || 0),
       0
     );
@@ -44,12 +62,12 @@ const Orders = () => {
 
     setRecord((prev) => ({
       ...prev,
-      total_money_digital: totalDigital.toFixed(2),
-      total_offset: totalOffset.toFixed(2),
-      total: total.toFixed(2),
-      remained: (total - Number(prev.recip || 0)).toFixed(2),
+      total_money_digital: Number(totalDigital.toFixed(2)),
+      total_money_offset: Number(totalOffset.toFixed(2)),
+      total: Number(total.toFixed(2)),
+      remained: Number((total - Number(prev.recip || 0)).toFixed(2)),
     }));
-  }, [record.digital, record.offset, record.recip]);
+  }, [record?.digital, record?.offset, record?.recip]);
 
   const handleCustomerChange = (e) => {
     const { name, value } = e.target;
@@ -67,14 +85,37 @@ const Orders = () => {
     });
   };
 
-  const saveRecord = async () => {
-    try {
-      console.log(record);
-      await axios.post("/api/records", record);
-      Swal.fire("Success", "Record saved successfully", "success");
-    } catch (err) {
-      Swal.fire("Error", "Failed to save record", "error");
-    }
+const saveRecord = async () => {
+  try {
+    await axios.post(`${BASE_URL}/orders`, record);
+    Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success"); // Success message in Dari
+    fetchOrders(); // Refresh the orders list after saving
+    setRecord({
+      customer: { name: "", phone_number: "" },
+      digital: [],
+      offset: [],
+      total_money_digital: 0,
+      total_money_offset: 0,
+      total: 0,
+      recip: 0,
+      remained: 0,
+    });
+  } catch (err) {
+    Swal.fire("خطا", "ثبت بیل موفقیت‌آمیز نبود", "error"); // Error message in Dari
+  }
+};
+
+
+  // Function to handle viewing bill for a specific order
+  const handleViewBill = (order) => {
+    setSelectedOrder(order);
+    setIsBillOpen(true);
+  };
+
+  // Function to close bill and reset selected order
+  const handleCloseBill = () => {
+    setIsBillOpen(false);
+    setSelectedOrder(null);
   };
 
   return (
@@ -106,7 +147,7 @@ const Orders = () => {
                 type="text"
                 name="name"
                 placeholder="نام مشتری را وارد کنید"
-                value={record.customer.name}
+                value={record.customer.name || ""}
                 onChange={handleCustomerChange}
                 className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
               />
@@ -123,7 +164,7 @@ const Orders = () => {
                 type="text"
                 name="phone_number"
                 placeholder="شماره تماس را وارد کنید"
-                value={record.customer.phone_number}
+                value={record.customer.phone_number || ""}
                 onChange={handleCustomerChange}
                 className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
               />
@@ -246,7 +287,7 @@ const Orders = () => {
       {/* Action Buttons */}
       <div className="flex justify-center gap-6">
         <button
-          onClick={() => setIsBillOpen(true)}
+          onClick={() => handleViewBill(record)}
           className="flex items-center gap-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
         >
           <FaEye className="text-lg" />
@@ -254,12 +295,83 @@ const Orders = () => {
         </button>
       </div>
 
+      {/* Orders Table */}
+      <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-3 bg-orange-100 rounded-full">
+            <FaFileInvoice className="text-orange-600 text-xl" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800">لیست سفارشات</h2>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-center border-collapse border border-gray-300">
+            <thead className="bg-blue-100">
+              <tr>
+                <th className="border border-gray-300 px-4 py-2">شماره</th>
+                <th className="border border-gray-300 px-4 py-2">نام مشتری</th>
+                <th className="border border-gray-300 px-4 py-2">شماره تماس</th>
+                <th className="border border-gray-300 px-4 py-2">مجموع</th>
+                <th className="border border-gray-300 px-4 py-2">دریافتی</th>
+                <th className="border border-gray-300 px-4 py-2">باقیمانده</th>
+                <th className="border border-gray-300 px-4 py-2">تاریخ</th>
+                <th className="border border-gray-300 px-4 py-2">بیل</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders && orders.length > 0 ? (
+                orders.map((order, index) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-4 py-2">
+                      {order.id}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {order.customer?.name || order.name}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {order.customer?.phone_number || order.phone_number}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {order.total}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {order.recip}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {order.remained}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {new Date(order.createdAt).toLocaleDateString("fa-AF")}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <button
+                        onClick={() => handleViewBill(order)}
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
+                      >
+                        <FaEye className="text-sm" />
+                        مشاهده فاکتور
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="8" className="text-gray-500 py-4">
+                    هیچ سفارشی وجود ندارد
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       {/* Print Bill Modal */}
       {isBillOpen && (
         <PrintOrderBill
           isOpen={isBillOpen}
-          onClose={() => setIsBillOpen(false)}
-          order={record}
+          onClose={handleCloseBill}
+          order={selectedOrder}
         />
       )}
     </div>

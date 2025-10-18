@@ -3,17 +3,6 @@ import Dashboard from "./pages/dashboard";
 // import S_Transaction from "./pages/RentManager";
 import Report from "./pages/reports";
 import Setting from "./pages/setting";
-// import RentManager from "./pages/RentManager";
-import ServiceManager from "./pages/ServiceManger";
-import StaffManager from "./pages/StaffManager";
-import Incomes from "./pages/incomes";
-import Expenses from "./pages/Expenses";
-import BlockManager from "./pages/BlockManger";
-import Salaries from "./pages/BillSummary";
-import CreateUser from "./pages/CreateUsers";
-import Residentialunites from "./pages/ResidentialUnites";
-
-import ActiveAthletes from "./pages/ActiveAthletes";
 import FinanceComponent from "./pages/Financial";
 import Orders from "./pages/Orders";
 const MainContent = ({ activeComponent }) => {

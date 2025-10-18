@@ -46,15 +46,15 @@ const Sidebar = ({ setActiveComponent }) => {
   const AllComponents = [
     { name: "صفحه اصلی", value: "home", icon: <LuActivity /> },
     { name: "سفارشات", value: "Orders", icon: <LuUserRoundPlus /> },
-    { name: "فیس", value: "Fees", icon: <FaMoneyBill /> },
-    { name: "ورزشکاران فعال", value: "ActiveAthletes", icon: <FaBuilding /> },
+    // { name: "فیس", value: "Fees", icon: <FaMoneyBill /> },
+    // { name: "ورزشکاران فعال", value: "ActiveAthletes", icon: <FaBuilding /> },
     // { name: "خدمات", value: "ServiceManager", icon: <MdLocalLaundryService /> },
     // { name: "کرایه‌", value: "RentManger", icon: <GiTakeMyMoney /> },
     // { name: "کارمندان", value: "StafFManager", icon: <FaUserGear /> },
     // { name: "معاشات", value: "Salaries", icon: <FaBuilding /> },
     // { name: "مصارف", value: "Expenses", icon: <MdLocalLaundryService /> },
     // { name: "عواید", value: "Incomes", icon: <GiTakeMyMoney /> },
-    { name: "برداشت ها", value: "financial", icon: <FaShop /> },
+    // { name: "برداشت ها", value: "financial", icon: <FaShop /> },
     // { name: "واحدها", value: "Blockes", icon: <FaHome /> },
     // {
     //   name: "خدمات واحدها",

@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  FaPlus,
-  FaTrash,
-  FaCalculator,
-  FaDollarSign,
-  FaHashtag,
-  FaPrint,
-  FaBox,
-} from "react-icons/fa";
+import { FaPlus, FaTrash, FaCalculator, FaPrint } from "react-icons/fa";
 
 const OffsetSection = ({ record, setRecord }) => {
   const addOffset = () => {
@@ -15,21 +7,26 @@ const OffsetSection = ({ record, setRecord }) => {
       ...record,
       offset: [
         ...record.offset,
-        { name: "", quantity: "", price_per_unit: "", money: "" },
+        { name: "", quantity: 0, price_per_unit: 0, money: 0 },
       ],
     });
   };
 
   const updateOffset = (index, field, value) => {
     const updated = [...record.offset];
-    updated[index][field] = value;
 
-    const quantity = parseFloat(updated[index].quantity) || 0;
-    const price_per_unit = parseFloat(updated[index].price_per_unit) || 0;
+    // Convert numeric fields to number
+    if (["quantity", "price_per_unit", "money"].includes(field)) {
+      updated[index][field] = parseFloat(value) || 0;
+    } else if (field === "name") {
+      updated[index][field] = value;
+    }
 
+    // Only calculate money automatically if money field wasn't the one being updated
     if (field !== "money") {
-      const money = quantity * price_per_unit;
-      updated[index].money = money ? money.toFixed(2) : "";
+      const quantity = updated[index].quantity;
+      const price_per_unit = updated[index].price_per_unit;
+      updated[index].money = quantity * price_per_unit;
     }
 
     setRecord({ ...record, offset: updated });
@@ -55,7 +52,7 @@ const OffsetSection = ({ record, setRecord }) => {
       name: "نام محصول را وارد کنید",
       quantity: "تعداد",
       price_per_unit: "قیمت هر واحد",
-      money: "محاسبه خودکار",
+      money: "مبلغ کل را وارد کنید",
     };
     return placeholders[field] || field;
   };
@@ -116,28 +113,19 @@ const OffsetSection = ({ record, setRecord }) => {
                   </label>
                   <div className="relative">
                     <input
+                      type={key === "name" ? "text" : "number"}
                       placeholder={getFieldPlaceholder(key)}
                       value={o[key]}
                       onChange={(e) => updateOffset(i, key, e.target.value)}
-                      className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 ${
-                        key === "money"
-                          ? "bg-gray-50 text-gray-600 cursor-not-allowed"
-                          : "bg-white text-gray-800 hover:border-gray-400"
-                      }`}
-                      disabled={key === "money"}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 transition-all duration-200 bg-white text-gray-800 hover:border-gray-400"
                     />
-
-                    {/* Unit Labels */}
-                    {key === "money" && (
-                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm"></span>
-                    )}
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Calculation Summary */}
-            {o.quantity && o.price_per_unit && (
+            {(o.quantity || o.price_per_unit) && (
               <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div className="flex justify-between items-center">
@@ -164,51 +152,6 @@ const OffsetSection = ({ record, setRecord }) => {
           </div>
         ))}
       </div>
-
-      {/* Empty State */}
-      {record.offset.length === 0 && (
-        <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border-2 border-dashed border-gray-300">
-          <div className="p-3 bg-blue-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-            <FaPrint className="text-blue-500 text-2xl" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">
-            محصولی اضافه نشده است
-          </h3>
-          <p className="text-gray-500 mb-4">
-            برای شروع، اولین محصول چاپ افست را اضافه کنید
-          </p>
-          <button
-            onClick={addOffset}
-            className="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105"
-          >
-            <FaPlus />
-            افزودن اولین محصول
-          </button>
-        </div>
-      )}
-
-      {/* Summary Card */}
-      {record.offset.length > 0 && (
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <FaCalculator className="text-2xl" />
-              <div>
-                <h3 className="text-lg font-semibold">خلاصه چاپ افست</h3>
-                <p className="text-green-100 text-sm">
-                  {record.offset.length} محصول اضافه شده
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold">
-                {record.total_offset} افغانی
-              </div>
-              <div className="text-blue-100 text-sm">مجموع مبلغ</div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

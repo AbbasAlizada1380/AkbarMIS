@@ -5,6 +5,8 @@ import { FaPhone, FaPrint, FaTimes } from "react-icons/fa";
 const PrintOrderBill = ({ isOpen, onClose, order }) => {
   if (!isOpen || !order) return null;
 
+  console.log(order);
+  
   const today = moment().format("jYYYY/jMM/jDD");
   const billNumber = `ORD-${Math.random()
     .toString(36)
@@ -75,7 +77,7 @@ const PrintOrderBill = ({ isOpen, onClose, order }) => {
                 {order.digital.map((d, i) => (
                   <tr key={i} className="text-center">
                     <td className="border p-1">{i + 1}</td>
-                    <td className="border p-1">{d.description}</td>
+                    <td className="border p-1">{d.name}</td>
                     <td className="border p-1">{d.quantity}</td>
                     <td className="border p-1">{formatCurrency(d.money)}</td>
                   </tr>
@@ -107,7 +109,7 @@ const PrintOrderBill = ({ isOpen, onClose, order }) => {
                 {order.offset.map((o, i) => (
                   <tr key={i} className="text-center">
                     <td className="border p-1">{i + 1}</td>
-                    <td className="border p-1">{o.description}</td>
+                    <td className="border p-1">{o.name}</td>
                     <td className="border p-1">{o.quantity}</td>
                     <td className="border p-1">{formatCurrency(o.money)}</td>
                   </tr>
@@ -115,7 +117,7 @@ const PrintOrderBill = ({ isOpen, onClose, order }) => {
               </tbody>
             </table>
             <div className="flex justify-end mt-2 text-sm font-bold">
-              مجموع چاپ افست: {formatCurrency(order.total_offset)}
+              مجموع چاپ افست: {formatCurrency(order.total_money_offset)}
             </div>
           </div>
         )}
