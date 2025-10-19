@@ -63,6 +63,7 @@ export const loginUser = async (req, res) => {
         fullname: user.fullname,
         email: user.email,
         role: user.role,
+        isActive:user.isActive,
       },
     });
   } catch (err) {
