@@ -28,16 +28,74 @@ import {
 } from "react-icons/fa";
 
 const Orders = () => {
+  // Default empty digital item
+  const defaultDigitalItem = {
+    name: "",
+    quantity: 0,
+    height: 0,
+    weight: 0,
+    area: 0,
+    price_per_unit: 0,
+    money: 0,
+  };
+
+  // Default empty offset item
+  const defaultOffsetItem = {
+    name: "",
+    quantity: 0,
+    price_per_unit: 0,
+    money: 0,
+  };
+
+  // Helper function to check if a digital item is filled
+  const isDigitalItemFilled = (item) => {
+    return (
+      item.name.trim() !== "" ||
+      item.quantity > 0 ||
+      item.height > 0 ||
+      item.weight > 0 ||
+      item.price_per_unit > 0 ||
+      item.money > 0
+    );
+  };
+
+  // Helper function to check if an offset item is filled
+  const isOffsetItemFilled = (item) => {
+    return (
+      item.name.trim() !== "" ||
+      item.quantity > 0 ||
+      item.price_per_unit > 0 ||
+      item.money > 0
+    );
+  };
+
+  // Helper function to filter out empty items before sending to backend
+  const prepareRecordForSubmit = (record) => {
+    const filteredDigital = record.digital.filter(isDigitalItemFilled);
+    const filteredOffset = record.offset.filter(isOffsetItemFilled);
+
+    return {
+      ...record,
+      digital: filteredDigital,
+      offset: filteredOffset,
+    };
+  };
+
   const [record, setRecord] = useState({
     customer: { name: "", phone_number: "" },
-    digital: [],
-    offset: [],
+    digital: Array(5)
+      .fill()
+      .map(() => ({ ...defaultDigitalItem })), // 5 empty digital forms
+    offset: Array(5)
+      .fill()
+      .map(() => ({ ...defaultOffsetItem })), // 5 empty offset forms
     total_money_digital: 0,
     total_money_offset: 0,
     total: 0,
     recip: 0,
     remained: 0,
   });
+
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [orders, setOrders] = useState([]);
@@ -104,13 +162,37 @@ const Orders = () => {
   };
 
   const saveRecord = async () => {
+    // Validate customer information
+    if (!record.customer.name.trim()) {
+      Swal.fire("خطا", "لطفاً نام مشتری را وارد کنید", "error");
+      return;
+    }
+
+    // Prepare the record by filtering out empty items
+    const recordToSubmit = prepareRecordForSubmit(record);
+
+    // Check if there are any filled items
+    const hasDigitalItems = recordToSubmit.digital.length > 0;
+    const hasOffsetItems = recordToSubmit.offset.length > 0;
+
+    if (!hasDigitalItems && !hasOffsetItems) {
+      Swal.fire(
+        "خطا",
+        "لطفاً حداقل یک محصول دیجیتال یا افست را پر کنید",
+        "error"
+      );
+      return;
+    }
+
     try {
       if (editMode) {
         // Update existing order
-        await updateOrder(editingOrderId, record);
+        await updateOrder(editingOrderId, recordToSubmit);
+        Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
       } else {
         // Create new order
-        await createOrder(record);
+        await createOrder(recordToSubmit);
+        Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success");
       }
 
       fetchOrders(currentPage);
@@ -127,8 +209,12 @@ const Orders = () => {
   const resetForm = () => {
     setRecord({
       customer: { name: "", phone_number: "" },
-      digital: [],
-      offset: [],
+      digital: Array(5)
+        .fill()
+        .map(() => ({ ...defaultDigitalItem })), // Reset to 5 empty digital forms
+      offset: Array(5)
+        .fill()
+        .map(() => ({ ...defaultOffsetItem })), // Reset to 5 empty offset forms
       total_money_digital: 0,
       total_money_offset: 0,
       total: 0,
@@ -147,8 +233,18 @@ const Orders = () => {
         name: order.customer?.name || order.name || "",
         phone_number: order.customer?.phone_number || order.phone_number || "",
       },
-      digital: order.digital || [],
-      offset: order.offset || [],
+      digital:
+        order.digital && order.digital.length > 0
+          ? order.digital
+          : Array(5)
+              .fill()
+              .map(() => ({ ...defaultDigitalItem })), // Keep 5 forms if no data
+      offset:
+        order.offset && order.offset.length > 0
+          ? order.offset
+          : Array(5)
+              .fill()
+              .map(() => ({ ...defaultOffsetItem })), // Keep 5 forms if no data
       total_money_digital: order.total_money_digital || 0,
       total_money_offset: order.total_money_offset || 0,
       total: order.total || 0,
@@ -195,6 +291,10 @@ const Orders = () => {
     setSelectedOrder(null);
   };
 
+  // Count filled items for display
+  const filledDigitalCount = record.digital.filter(isDigitalItemFilled).length;
+  const filledOffsetCount = record.offset.filter(isOffsetItemFilled).length;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6 space-y-8">
       {/* Header Section */}
@@ -238,7 +338,7 @@ const Orders = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="block text-base font-medium text-gray-700 mb-2">
-              نام مشتری
+              نام مشتری *
             </label>
             <div className="relative">
               <input
@@ -291,7 +391,7 @@ const Orders = () => {
             }`}
           >
             <FaPrint className="text-lg" />
-            افزودن چاپ دیجیتال
+            چاپ دیجیتال ({filledDigitalCount} از {record.digital.length} پر شده)
           </button>
 
           <button
@@ -303,7 +403,7 @@ const Orders = () => {
             }`}
           >
             <FaPrint className="text-lg" />
-            افزودن چاپ افست
+            چاپ افست ({filledOffsetCount} از {record.offset.length} پر شده)
           </button>
         </div>
 
@@ -373,17 +473,38 @@ const Orders = () => {
           <div className="flex items-end space-x-4">
             <button
               onClick={saveRecord}
+              disabled={
+                !record.customer.name.trim() ||
+                (filledDigitalCount === 0 && filledOffsetCount === 0)
+              }
               className={`flex items-center gap-3 px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
                 editMode
                   ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
                   : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
-              } text-white`}
+              } ${
+                !record.customer.name.trim() ||
+                (filledDigitalCount === 0 && filledOffsetCount === 0)
+                  ? "opacity-50 cursor-not-allowed"
+                  : "text-white"
+              }`}
             >
               <FaSave className="text-lg" />
               {editMode ? "ویرایش اطلاعات" : "ذخیره اطلاعات"}
             </button>
           </div>
         </div>
+
+        {/* Validation message */}
+        {(!record.customer.name.trim() ||
+          (filledDigitalCount === 0 && filledOffsetCount === 0)) && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">
+              {!record.customer.name.trim()
+                ? "لطفاً نام مشتری را وارد کنید"
+                : "لطفاً حداقل یک محصول دیجیتال یا افست را پر کنید"}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}
@@ -480,7 +601,7 @@ const Orders = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="8" className="text-gray-500 py-4">
+                  <td colSpan="9" className="text-gray-500 py-4">
                     هیچ سفارشی وجود ندارد
                   </td>
                 </tr>
