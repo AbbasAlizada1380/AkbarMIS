@@ -1,206 +1,173 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import User from "../Models/user.js";
-import fs from 'fs'
-import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import { log } from "console";
 
+const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
 
-export const getUsersByZone = async (req, res) => {
-  const { zone } = req.params;
-
+// ✅ Register new user
+export const registerUser = async (req, res) => {
   try {
-    // Fetch users who are in the same zone
-    const users = await User.findAll({
-      where: { zone: zone, mode: "active" }, // Assuming "mode" indicates if the user is active
-      attributes: ['id', 'name', 'username', 'email', 'role'], // Select the necessary fields
-    });
+    const { fullname, email, password, role } = req.body;
 
-    if (users.length === 0) {
-      return res.status(404).json({ message: 'هیچ کاربری در این زون وجود ندارد' });
-    }
-
-    res.status(200).json(users);
-  } catch (error) {
-    console.error('Error fetching users by zone:', error);
-    res.status(500).json({ error: 'خطا در بازیابی کاربران' });
-  }
-};
-
-
-export const login = async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    // Find the user by username
-    const user = await User.findOne({ where: { username } });
-
-    if (!user) {
-      return res.status(401).json({ message: 'نام کاربری یا رمز عبور نادرست است.' });
-    }
-    // Compare the password with the hashed password in the database
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: 'نام کاربری یا رمز عبور نادرست است.' });
-    }
-
-    // Check if the user account is active
-    if (user.mode === 'deactive') {
-      return res.status(403).json({ message: 'این حساب غیر فعال است.' });
-    }
-    
-    const secretKey = 'abbas'; // Store this in an environment variable
-    const payload = { userId: user.id, userRole: user.role, userMode: user.mode };
-    const token=jwt.sign(payload,secretKey,{expiresIn:'1h'})
-
-    // Send the response with user details
-    res.status(200).json({
-      token,
-      userId: user.id,
-      userRole: user.role,
-      userMode: user.mode,
-      userZone:user.zone,
-      message: 'ورود موفقیت آمیز بود.'
-    });
-  } catch (error) {
-    res.status(500).json({ message: 'خطایی رخ داد. لطفا دوباره تلاش کنید.' });
-  }
-};
-
-// Controller function to create a new user
-export const createUser = async (req, res) => {
-  const { name, userName, Password, email, role, zone,mode } = req.body;
-
-
-  // Basic validation
-  if (!name || !userName || !Password || !email || !role) {
-    return res.status(400).json({ error: 'All fields are required' });
-  }
-
-  if (Password.length < 6) {
-    return res.status(400).json({ error: 'Password must be at least 6 characters' });
-  }
-
-  if (role !== 'کاربر' && role !== 'مدیر') {
-    return res.status(400).json({ error: 'Role must be either user or admin' });
-  }
-
-  try {
-    // Check if username already exists
-    const existingUser = await User.findOne({ where: { username: userName } });
+    const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' });
+      return res.status(400).json({ message: "Email already exists." });
     }
 
-    // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(Password, 6);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create the new user record
-    const newUser = await User.create({
-      name,
-      username: userName,
-      password: hashedPassword,
+    const user = await User.create({
+      fullname,
       email,
-      role,
-      zone,mode
+      password: hashedPassword,
+      role: role || "user",
+      isActive: true,
     });
 
-    // Send success response
-    res.status(201).json({ message: 'User created successfully!', user: newUser });
-  } catch (error) {
-    console.error('Error creating user:', error);
-    res.status(500).json({ error: 'An error occurred while creating the user' });
+    res.status(201).json({
+      message: "User created successfully",
+      user: {
+        id: user.id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.error("Error creating user:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-// Fetch user details by ID
-export const getUserDetails = async (req, res) => {
-  const userId = req.params.id;
-
+// ✅ Login
+export const loginUser = async (req, res) => {
   try {
-    const user = await User.findByPk(userId, {
-      attributes: ['name', 'username', 'password', 'email', 'image', 'role', 'zone'],
+    const { email, password } = req.body;
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch)
+      return res.status(401).json({ message: "Invalid credentials." });
+
+    const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
+      expiresIn: "1d",
     });
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    res.json(user);
-  } catch (error) {
-    console.error('Error fetching user details:', error);
-    res.status(500).json({ error: 'Server error' });
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user.id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.error("Error logging in:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
+// ✅ Get all users
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+      attributes: ["id", "fullname", "email", "role", "isActive", "createdAt"],
+    });
     res.json(users);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+  } catch (err) {
+    console.error("Error fetching users:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-
-export const updateUser = async (req, res) => {
-
-  const { name, username, password, email, } = req.body;
-  const image = req.file ? req.file.filename : null;
-
+// ✅ Get single user
+export const getUserById = async (req, res) => {
   try {
-    console.log(image);
-    const user = await User.findByPk(req.params.id);
+    const { id } = req.params;
+    const user = await User.findByPk(id, {
+      attributes: ["id", "fullname", "email", "role", "isActive"],
+    });
 
-    if (image) {
-      if (fs.existsSync(`uploads/${user.image}`)) {
-        fs.unlinkSync(`uploads/${user.image}`);
-      }
-    }
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    user.name = name;
-    user.username = username;
-    if (password) {
-      user.password = password; // Ensure to hash the password before saving
-    }
-    user.email = email;
-    if (image) {
-      user.image = image;
-    }
-
-    await user.save();
+    if (!user) return res.status(404).json({ message: "User not found." });
     res.json(user);
-  } catch (error) {
-    res.status(500).json({ error: 'An error occurred while updating the user' });
+  } catch (err) {
+    console.error("Error fetching user:", err);
+    res.status(500).json({ message: "Server error" });
   }
-  // });
 };
 
-export const deleteUser = async (req, res) => {
-  const { id } = req.params;
-
+// ✅ Update user info
+export const updateUser = async (req, res) => {
   try {
+    const { id } = req.params;
+    const { fullname, email, role, isActive } = req.body;
+
     const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ message: "User not found." });
 
-    if (!user||user.mode==='deactive') {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    await user.update({mode:'deactive'});
-    res.status(200).json({ message: 'User deleted successfully' });
-  } catch (error) {
-    console.log(id);
-    console.error('Error deleting user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    await user.update({ fullname, email, role, isActive });
+    res.json({ message: "User updated successfully", user });
+  } catch (err) {
+    console.error("Error updating user:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
-     
 
+// ✅ Soft delete (deactivate user)
+export const deactivateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ message: "User not found." });
 
+    await user.update({ isActive: false });
+    res.json({ message: "User deactivated successfully." });
+  } catch (err) {
+    console.error("Error deactivating user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
 
+// ✅ Reactivate user
+export const reactivateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    await user.update({ isActive: true });
+    res.json({ message: "User reactivated successfully." });
+  } catch (err) {
+    console.error("Error reactivating user:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// ✅ Change password
+export const changePassword = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { oldPassword, newPassword } = req.body;
+
+    const user = await User.findByPk(id);
+    if (!user) return res.status(404).json({ message: "User not found." });
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Old password is incorrect." });
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await user.update({ password: hashedNewPassword });
+
+    res.json({ message: "Password changed successfully." });
+  } catch (err) {
+    console.error("Error changing password:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+};

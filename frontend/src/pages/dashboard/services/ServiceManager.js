@@ -47,6 +47,7 @@ export const createOrder = async (orderData) => {
       showAlert("خطا", "نام مشتری نمی‌تواند خالی باشد", "error");
       return;
     }
+    console.log(orderData);
 
     const res = await axios.post(`${BASE_URL}/orders`, orderData);
     showAlert("موفق", "بیل با موفقیت ثبت شد ✅", "success");
@@ -90,21 +91,13 @@ export const toggleDelivery = async (orderId, currentStatus) => {
       isDelivered: !currentStatus,
     });
 
-    Swal.fire(
-      "موفق",
-      `وضعیت تحویل تغییر کرد ✅`,
-      "success"
-    );
+    Swal.fire("موفق", `وضعیت تحویل تغییر کرد ✅`, "success");
     return res.data;
     // Optionally, refresh your order list or update state
     getOrders(); // if you have a fetch function
   } catch (error) {
     console.error(error);
-    Swal.fire(
-      "خطا",
-      "تغییر وضعیت تحویل انجام نشد 😢",
-      "error"
-    );
+    Swal.fire("خطا", "تغییر وضعیت تحویل انجام نشد 😢", "error");
   }
 };
 export const payRemaining = async (order) => {

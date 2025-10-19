@@ -9,12 +9,12 @@ const DigitalSection = ({ record, setRecord }) => {
         ...record.digital,
         {
           name: "",
-          quantity: 0,
-          height: 0,
-          weight: 0,
-          area: 0,
-          price_per_unit: 0,
-          money: 0,
+          quantity: null,
+          height: null,
+          weight: null,
+          area: null,
+          price_per_unit: null,
+          money: null,
         },
       ],
     });
@@ -97,61 +97,38 @@ const DigitalSection = ({ record, setRecord }) => {
             <p className="text-gray-600 text-sm">مدیریت محصولات چاپ دیجیتال</p>
           </div>
         </div>
-
-        <button
-          onClick={addDigital}
-          className="flex items-center gap-2 text-sm bg-cyan-800 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200  cursor-pointer shadow-lg hover:shadow-xl"
-        >
-          <FaPlus className="text-base" />
-          افزودن محصول
-        </button>
       </div>
 
+      {/* Items List */}
       {/* Items List */}
       <div className="space-y-4">
         <div className="space-y-4">
           {record && record.digital && record.digital.length > 0 ? (
             record.digital.map((d, i) => (
-              <div
-                key={i}
-                className="bg-gray-200 rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300"
-              >
-                {/* Item Header */}
-                <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <h3 className="text-lg font-semibold text-gray-800">
-                      محصول {i + 1}
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => deleteDigital(i)}
-                    className="flex items-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105"
-                  >
-                    <FaTrash className="text-sm" />
-                    حذف
-                  </button>
-                </div>
-
+              <div key={i} className="flex items-center gap-x-5">
                 {/* Input Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-x-4">
                   {Object.keys(d).map((key) => (
-                    <div key={key} className="space-y-2">
+                    <div
+                      key={key}
+                      className={`space-y-2 ${
+                        key === "name" ? "lg:col-span-2" : ""
+                      }`}
+                    >
                       <label className="block text-sm font-medium text-gray-700">
                         {getFieldLabel(key)}
                       </label>
                       <div className="relative">
                         <input
                           type={key === "name" ? "text" : "number"}
-                          placeholder={getFieldPlaceholder(key)}
                           value={d[key]}
                           onChange={(e) =>
                             updateDigital(i, key, e.target.value)
                           }
-                          className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
                             key === "area"
-                              ? "bg-gray-50 text-gray-600 cursor-not-allowed"
-                              : "bg-white text-gray-800 hover:border-gray-400"
+                              ? "bg-gray-200 text-gray-600 cursor-not-allowed"
+                              : "bg-gray-200 text-gray-800 hover:border-gray-400"
                           }`}
                           disabled={key === "area"}
                         />
@@ -159,26 +136,14 @@ const DigitalSection = ({ record, setRecord }) => {
                     </div>
                   ))}
                 </div>
-
-                {/* Calculation Summary */}
-                {(d.area || d.money) && (
-                  <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">مساحت کل:</span>
-                        <span className="font-semibold text-blue-600">
-                          {d.area} cm²
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">مبلغ کل:</span>
-                        <span className="font-semibold text-green-600">
-                          {d.money} افغانی
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <div className="flex h-12  w-12  relative">
+                  <button
+                    onClick={() => deleteDigital(i)}
+                    className=" text-red-500 absolute cursor-pointer bottom-0 "
+                  >
+                    <FaTrash className="" size={20} />
+                  </button>
+                </div>
               </div>
             ))
           ) : (
@@ -187,6 +152,13 @@ const DigitalSection = ({ record, setRecord }) => {
             </p>
           )}
         </div>
+        <button
+          onClick={addDigital}
+          className="flex items-center gap-2 text-sm bg-cyan-800 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl"
+        >
+          <FaPlus className="text-base" />
+          افزودن محصول
+        </button>
       </div>
     </div>
   );
