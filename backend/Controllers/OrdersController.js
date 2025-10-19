@@ -1,4 +1,53 @@
 import { Order, Digital, Offset } from "../Models/Orders.js";
+import { Sequelize, Op } from "sequelize";
+
+export const searchOrders = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    // Validation
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ message: "عبارت جستجو الزامی است" });
+    }
+
+    const isId = !isNaN(q); // Check if query is numeric
+
+    // ✅ Build dynamic WHERE clause
+    let whereClause = {};
+
+    if (isId) {
+      whereClause = { id: Number(q) };
+    } else {
+      whereClause = {
+        [Op.or]: [
+          Sequelize.where(Sequelize.json("customer.name"), {
+            [Op.like]: `%${q}%`,
+          }),
+        ],
+      };
+    }
+
+    // ✅ Query the database
+    const orders = await Order.findAll({
+      where: whereClause,
+      include: [
+        { model: Digital, as: "digital" },
+        { model: Offset, as: "offset" },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    // ✅ If nothing found
+    if (!orders.length) {
+      return res.status(404).json({ message: "هیچ نتیجه‌ای یافت نشد" });
+    }
+
+    res.json(orders);
+  } catch (error) {
+    console.error("❌ Search error:", error);
+    res.status(500).json({ message: "خطا در جستجو", error: error.message });
+  }
+};
 
 // Create a new order
 export const createOrder = async (req, res) => {
@@ -169,7 +218,6 @@ export const updateOrder = async (req, res) => {
     res.status(500).json({ message: "Error updating order", error });
   }
 };
-
 
 // ✅ Partial update controller
 export const updateOrderProperties = async (req, res) => {

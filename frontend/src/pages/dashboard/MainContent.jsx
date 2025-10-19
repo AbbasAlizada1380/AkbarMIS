@@ -4,6 +4,7 @@ import Dashboard from "./pages/dashboard";
 import Report from "./pages/reports";
 import FinanceComponent from "./pages/Financial";
 import Orders from "./pages/Orders";
+import OrdersList from "./pages/OrdersList";
 const MainContent = ({ activeComponent }) => {
   const renderContent = () => {
     switch (activeComponent) {
@@ -27,6 +28,8 @@ const MainContent = ({ activeComponent }) => {
         return <Fees />;
       case "Orders":
         return <Orders />;
+      case "OrdersList":
+        return <OrdersList />;
 
       default:
         return <Dashboard />;

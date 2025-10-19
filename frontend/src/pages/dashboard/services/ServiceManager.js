@@ -82,3 +82,40 @@ export const deleteOrder = async (id) => {
     throw error;
   }
 };
+
+export const toggleDelivery = async (orderId, currentStatus) => {
+  try {
+    // Send PATCH request to toggle the boolean
+    const res = await axios.patch(`${BASE_URL}/orders/${orderId}`, {
+      isDelivered: !currentStatus,
+    });
+
+    Swal.fire(
+      "موفق",
+      `وضعیت تحویل تغییر کرد ✅`,
+      "success"
+    );
+    return res.data;
+    // Optionally, refresh your order list or update state
+    getOrders(); // if you have a fetch function
+  } catch (error) {
+    console.error(error);
+    Swal.fire(
+      "خطا",
+      "تغییر وضعیت تحویل انجام نشد 😢",
+      "error"
+    );
+  }
+};
+export const payRemaining = async (order) => {
+  try {
+    const updatedOrder = await axios.patch(`${BASE_URL}/orders/${order.id}`, {
+      recip: order.recip + order.remained,
+      remained: 0,
+    });
+    return updatedOrder.data; // <-- return updated order
+  } catch (err) {
+    console.error("Error paying remaining:", err);
+    throw err;
+  }
+};

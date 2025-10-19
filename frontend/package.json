@@ -24,6 +24,7 @@
     "jalaali-js": "^1.2.8",
     "jalali-moment": "^3.3.11",
     "lodash": "^4.17.21",
+    "lodash.debounce": "^4.0.8",
     "lucide-react": "^0.477.0",
     "moment-hijri": "^3.0.0",
     "moment-jalaali": "^0.10.4",
