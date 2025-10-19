@@ -196,7 +196,7 @@ const Orders = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6 space-y-8">
+    <div className="min-h-screen bg-gray-100 p-6 space-y-8">
       {/* Header Section */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
@@ -216,101 +216,97 @@ const Orders = () => {
       </div>
 
       {/* Customer Information Card */}
-      <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <FaUser className="text-blue-600 text-xl" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800">معلومات مشتری</h2>
-          </div>
-          {editMode && (
-            <button
-              onClick={resetForm}
-              className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
-            >
-              <FaTimes className="text-sm" />
-              لغو ویرایش
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="block text-base font-medium text-gray-700 mb-2">
-              نام مشتری
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="name"
-                placeholder="نام مشتری را وارد کنید"
-                value={record.customer.name || ""}
-                onChange={handleCustomerChange}
-                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
-              />
-              <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-base font-medium text-gray-700 mb-2">
-              شماره تماس
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="phone_number"
-                placeholder="شماره تماس را وارد کنید"
-                value={record.customer.phone_number || ""}
-                onChange={handleCustomerChange}
-                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
-              />
-              <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Section Toggle Buttons */}
       <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-purple-100 rounded-full">
-            <FaLayerGroup className="text-purple-600 text-xl" />
+        <div className="bg-white rounded-2xl  p-3  border-gray-200">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-100 rounded-full">
+                <FaUser className="text-cyan-500 text-xl" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800">
+                معلومات مشتری
+              </h2>
+            </div>
+            {editMode && (
+              <button
+                onClick={resetForm}
+                className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
+              >
+                <FaTimes className="text-sm" />
+                لغو ویرایش
+              </button>
+            )}
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">بخش‌های چاپ</h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="block text-base font-medium text-gray-700 mb-2">
+                نام مشتری
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="نام مشتری را وارد کنید"
+                  value={record.customer.name || ""}
+                  onChange={handleCustomerChange}
+                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
+                />
+                <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-base font-medium text-gray-700 mb-2">
+                شماره تماس
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="phone_number"
+                  placeholder="شماره تماس را وارد کنید"
+                  value={record.customer.phone_number || ""}
+                  onChange={handleCustomerChange}
+                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
+                />
+                <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="flex gap-4 mb-6">
+        <div className="flex gap-4 mb-6 mt-4">
           <button
             onClick={() => setActiveSection("digital")}
             className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg ${
               activeSection === "digital"
-                ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-blue-200"
+                ? "bg-cyan-800 text-white shadow-blue-200"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             <FaPrint className="text-lg" />
-            افزودن چاپ دیجیتال
+             چاپ دیجیتال
           </button>
 
           <button
             onClick={() => setActiveSection("offset")}
             className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg ${
               activeSection === "offset"
-                ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-blue-200"
+                ? "bg-cyan-800 text-white shadow-blue-200"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
-            <FaPrint className="text-lg" />
-            افزودن چاپ افست
+            <FaPrint className="text-lg " />
+             چاپ افست
           </button>
         </div>
 
         {/* Dynamic Section Display */}
         <div className="transition-all duration-300">
           {activeSection === "digital" && (
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+            <div className=" ">
               <DigitalSection record={record} setRecord={setRecord} />
             </div>
           )}

@@ -1,5 +1,5 @@
 import React from "react";
-import { FaPlus, FaTrash, FaCalculator } from "react-icons/fa";
+import { FaPlus, FaTrash, FaCalculator, FaPrint } from "react-icons/fa";
 
 const DigitalSection = ({ record, setRecord }) => {
   const addDigital = () => {
@@ -88,7 +88,9 @@ const DigitalSection = ({ record, setRecord }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
-            <div className="w-6 h-6 bg-blue-500 rounded"></div>
+            <div className=" bg-blue-100 rounded-lg">
+              <FaPrint className="text-blue-500 text-xl" />
+            </div>
           </div>
           <div>
             <h2 className="text-2xl font-bold text-gray-800">چاپ دیجیتال</h2>
@@ -98,9 +100,9 @@ const DigitalSection = ({ record, setRecord }) => {
 
         <button
           onClick={addDigital}
-          className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
+          className="flex items-center gap-2 text-sm bg-cyan-800 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200  cursor-pointer shadow-lg hover:shadow-xl"
         >
-          <FaPlus className="text-lg" />
+          <FaPlus className="text-base" />
           افزودن محصول
         </button>
       </div>
@@ -112,7 +114,7 @@ const DigitalSection = ({ record, setRecord }) => {
             record.digital.map((d, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300"
+                className="bg-gray-200 rounded-2xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300"
               >
                 {/* Item Header */}
                 <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
@@ -132,7 +134,7 @@ const DigitalSection = ({ record, setRecord }) => {
                 </div>
 
                 {/* Input Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-4">
                   {Object.keys(d).map((key) => (
                     <div key={key} className="space-y-2">
                       <label className="block text-sm font-medium text-gray-700">
