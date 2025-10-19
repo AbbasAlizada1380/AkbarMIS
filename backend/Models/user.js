@@ -1,49 +1,37 @@
-import { DataTypes } from 'sequelize';
-import sequelize from '../dbconnection.js';
+import { DataTypes } from "sequelize";
+import sequelize from "../dbconnection.js";
 
-const User = sequelize.define('User', {
-    name: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    username: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        // unique: true
-    },
-    password: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    image: {
-        type: DataTypes.STRING,
-        allowNull: true,
+const User = sequelize.define(
+  "User",
+  {
+    fullname: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-            isEmail: true
-        },
-        // unique: true,
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        isEmail: true,
+      },
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     role: {
-        type: DataTypes.STRING,
-        allowNull: true,
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "user", // optional default
     },
-    zone: {
-        type: DataTypes.STRING,
-        allowNull: true,
+    isActive: {
+      type: DataTypes.BOOLEAN,
     },
-    mode: {
-        type: DataTypes.STRING,
-        allowNull: true,
-    }
-},{
-        timestamps: true
-    });
+  },
+  {
+    timestamps: true,
+  }
+);
 
 export default User;
-
-
-

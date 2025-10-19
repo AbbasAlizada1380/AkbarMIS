@@ -1,20 +1,24 @@
-import { Router } from 'express';
-import {  getAllUsers, createUser, updateUser,  getUserDetails,  deleteUser, login, getUsersByZone, } from '../Controllers/userController.js';
-import upload from '../middleware/upload.js';
+import express from "express";
+import {
+  registerUser,
+  loginUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deactivateUser,
+  reactivateUser,
+  changePassword,
+} from "../Controllers/userController.js";
 
+const userrouter = express.Router();
 
+userrouter.post("/register", registerUser);
+userrouter.post("/login", loginUser);
+userrouter.get("/", getAllUsers);
+userrouter.get("/:id", getUserById);
+userrouter.patch("/:id", updateUser);
+userrouter.patch("/:id/deactivate", deactivateUser);
+userrouter.patch("/:id/reactivate", reactivateUser);
+userrouter.patch("/:id/password", changePassword);
 
-const router = Router();
-
-// Define routes
-router.get('/', getAllUsers);
-router.post('/createUser', createUser);
-router.delete('/:id',deleteUser);
-router.post('/login', login);
-router.get('/:id', getUserDetails);
-router.get('/zone/:zone', getUsersByZone);
-
-router.put('/:id', upload.single("image"), updateUser);
-export default router;
-
-
+export default userrouter;
