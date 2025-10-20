@@ -5,7 +5,7 @@ import DigitalSection from "./DigitalSection.jsx";
 import OffsetSection from "./OffsetSection.jsx";
 import BillSummary from "./BillSummary.jsx";
 import PrintOrderBill from "./PrintOrderBill.jsx";
-import { FaArrowCircleDown, FaArrowCircleUp, FaCheck } from "react-icons/fa";
+import { FaArrowCircleDown, FaArrowCircleUp, FaCheck, FaUndo } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
 import Pagination from "../pagination/Pagination.jsx";
 import {
@@ -372,22 +372,25 @@ const OrdersList = () => {
       )} */}
 
       {/* Orders Table */}
-      <div className="flex justify-center gap-2">
-        <SearchBar ref={searchRef} onResults={setSearchResult} />
-        <button
-          onClick={() => searchRef.current?.reset()}
-          className="flex items-center gap-2 text-gray-50 border border-cayn-800 cursor-pointer bg-cyan-800 rounded-lg px-2  transition-colors"
-        >
-          <FaArrowCircleDown className="text-xl" />
-          پاک کردن جستجو
-        </button>
-      </div>
+
       <div className="bg-white rounded-lg shadow-lgborder border-gray-100">
-        <div className="flex items-center gap-3  p-6 ">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <FaFileInvoice className="text-cyan-800 text-xl" />
+        <div className="flex bg-gray-200 items-center justify-between gap-3 rounded-t-md  p-6 ">
+          <div className="flex items-center gap-x-4">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <FaFileInvoice className="text-cyan-800 text-xl" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800">لیست سفارشات</h2>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">لیست سفارشات</h2>
+          <div className="flex justify-center gap-2">
+            <SearchBar ref={searchRef} onResults={setSearchResult} />
+            <button
+              onClick={() => searchRef.current?.reset()}
+              className="flex items-center gap-2 text-gray-50 border border-cayn-800 cursor-pointer bg-cyan-800 rounded-lg px-2  transition-colors"
+            >
+              <FaUndo className="text-lg" />
+              پاک کردن جستجو
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -410,7 +413,12 @@ const OrdersList = () => {
                 ? searchResult
                 : orders
               ).map((order, index) => (
-                <tr key={order.id || index} className="hover:bg-gray-50">
+                <tr
+                  key={order.id || index}
+                  className={`hover:bg-gray-50 ${
+                    order.isDelivered && order.remained === 0 && "bg-blue-100"
+                  } `}
+                >
                   <td className="border border-gray-300 px-4 py-2">
                     {order.id || "#"}
                   </td>
@@ -420,15 +428,20 @@ const OrdersList = () => {
                   <td className="border border-gray-300 px-4 py-2">
                     {order.customer?.phone_number || order.phone_number}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">
+                  <td className="border font-semibold border-gray-300 px-4 py-2">
                     {order.total}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">
+                  <td className="border font-semibold text-green-600 border-gray-300 px-4 py-2">
                     {order.recip}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">
+                  <td
+                    className={`border font-semibold border-gray-300 px-4 py-2 ${
+                      order.remained === 0 ? "text-black" : "text-red-500"
+                    }`}
+                  >
                     {order.remained}
                   </td>
+
                   <td className="border border-gray-300 px-4 py-2">
                     {new Date(order.createdAt).toLocaleDateString("fa-AF")}
                   </td>
@@ -462,7 +475,9 @@ const OrdersList = () => {
                         }}
                         className="p-2 rounded bg-gray-200 hover:bg-gray-300"
                       >
-                    <div className="w-full flex items-center gap-x-2 justify-center text-cyan-800">{order.isDelivered ? <FaCheck /> : <ImCross />}</div>
+                        <div className="w-full flex items-center gap-x-2 justify-center text-cyan-800">
+                          {order.isDelivered ? <FaCheck /> : <ImCross />}
+                        </div>
                       </button>
 
                       {/* Pay remaining */}
