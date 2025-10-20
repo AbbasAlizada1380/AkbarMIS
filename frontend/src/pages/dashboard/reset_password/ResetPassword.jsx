@@ -24,7 +24,7 @@ const ResetPassword = () => {
     }
 
     try {
-      await axios.post(`/api/auth/reset-password/${token}`, { password });
+      await axios.post(`${BASE_URL}/users/reset-password/${token}`, { password });
       Swal.fire({
         icon: "success",
         title: "موفق!",

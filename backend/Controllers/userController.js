@@ -5,6 +5,8 @@ import crypto from "crypto";
 import nodemailer from "nodemailer";
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
 const frontUrl = process.env.FRONT_URL;
+import dotenv from "dotenv";
+dotenv.config();
 // ✅ Register new user
 export const registerUser = async (req, res) => {
   try {
@@ -64,7 +66,7 @@ export const loginUser = async (req, res) => {
         fullname: user.fullname,
         email: user.email,
         role: user.role,
-        isActive:user.isActive,
+        isActive: user.isActive,
       },
     });
   } catch (err) {
@@ -178,14 +180,14 @@ export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
+    console.log(token);
 
     const user = await User.findOne({
       where: {
         resetToken: token,
-        resetExpires: { [Op.gt]: Date.now() },
+        // resetExpires: { [Op.gt]: Date.now() },
       },
     });
-
     if (!user)
       return res.status(400).json({ message: "لینک نامعتبر یا منقضی است" });
 
@@ -203,15 +205,15 @@ export const resetPassword = async (req, res) => {
 
 // controllers/authController.js
 
-
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ where: { email } });
 
-    if (!user) return res.status(404).json({ message: "کاربری با این ایمیل یافت نشد" });
+    if (!user)
+      return res.status(404).json({ message: "کاربری با این ایمیل یافت نشد" });
 
-    // generate token
+    // Generate token
     const resetToken = crypto.randomBytes(20).toString("hex");
     const resetExpires = Date.now() + 3600000; // 1 hour
 
@@ -219,9 +221,16 @@ export const forgotPassword = async (req, res) => {
     user.resetExpires = resetExpires;
     await user.save();
 
-    const resetLink = `${frontUrl}/reset-password/${resetToken}`;
+    // Use FRONT_URL from .env
+    const resetLink = `${process.env.FRONT_URL}/reset-password/${resetToken}`;
 
-    // configure your transporter
+    // Check for credentials
+    if (!process.env.EMAIL || !process.env.EMAIL_PASSWORD) {
+      console.error("❌ Missing email credentials in .env file");
+      return res.status(500).json({ message: "Email credentials not set" });
+    }
+
+    // Configure Nodemailer
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -230,7 +239,9 @@ export const forgotPassword = async (req, res) => {
       },
     });
 
+    // Send email
     await transporter.sendMail({
+      from: process.env.EMAIL,
       to: user.email,
       subject: "بازیابی رمز عبور",
       html: `<p>برای تنظیم رمز عبور جدید <a href="${resetLink}">اینجا کلیک کنید</a>.</p>`,

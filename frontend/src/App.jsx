@@ -17,7 +17,7 @@ export default function App() {
           {/* public routes all users */}
           {/* <Route path="/" element={<HomePage />} /> */}
           <Route path="/forgot_password" element={<EmailEntry />} />
-          <Route path="/reset_password" element={<ResetPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/" element={<Signin />} />
           <Route path="*" element={<Signin />} />
           <Route element={<PrivateRoute />}>
