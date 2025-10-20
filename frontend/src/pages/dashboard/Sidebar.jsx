@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { FaBuilding, FaSignOutAlt } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
-import { signOutSuccess } from "../../state/userSlice/userSlice"; // Make sure path is correct
+import { signOutSuccess } from "../../state/userSlice/userSlice";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
@@ -40,50 +40,44 @@ const Sidebar = ({ setActiveComponent }) => {
 
   const AllComponents = [
     { name: "صفحه اصلی", value: "home", icon: <MdOutlineDashboardCustomize /> },
-    { name: "سفارشات جدید", value: "Orders", icon: <MdAddShoppingCart /> }, // },
-    { name: "لیست سفارشات ", value: "OrdersList", icon: <FaList /> }, // },
+    { name: "سفارشات جدید", value: "Orders", icon: <MdAddShoppingCart /> },
+    { name: "لیست سفارشات ", value: "OrdersList", icon: <FaList /> },
     {
       name: " ثبت کاربر جدید",
-      value: "CreateUsers",
+      value: "AddUser",
       icon: <LucideUserRoundPlus />,
     },
     { name: "خروج", value: "signout", icon: <FaSignOutAlt /> },
   ];
 
   let accessibleComponents = [];
-  if (
-    currentUser &&
-    currentUser.role &&
-    Array.isArray(currentUser.role) &&
-    currentUser.role.length > 0
-  ) {
-    const userRoleNumber = currentUser.role[0];
 
-    if (userRoleNumber === 0 || userRoleNumber === 1) {
+  if (currentUser && currentUser.role) {
+    const userRole = currentUser.role;
+
+    if (userRole === "admin") {
       accessibleComponents = AllComponents;
-    } else if (userRoleNumber === 3) {
-      const role2AllowedValues = [
+    } else if (userRole === "reception") {
+      const receptionAllowedValues = [
         "home",
-        "ServiceManager",
-        "RentManger",
-        "Salaries",
-        "Expenses",
-        "Incomes",
-        "BlockesServices",
-        "financial",
+        "Orders",
+        "OrdersList",
         "signout",
       ];
       accessibleComponents = AllComponents.filter((component) =>
-        role2AllowedValues.includes(component.value)
+        receptionAllowedValues.includes(component.value)
       );
     } else {
+      // Default fallback for other roles or no role
       accessibleComponents = AllComponents.filter(
         (component) => component.value === "signout"
       );
     }
   } else {
+    // If no user is logged in, show only basic components
     accessibleComponents = AllComponents.filter(
-      (component) => component.value === "signout"
+      (component) =>
+        component.value === "Orders" || component.value === "signout"
     );
   }
 
@@ -102,7 +96,7 @@ const Sidebar = ({ setActiveComponent }) => {
       </header>
 
       <ul className=" mr-1 px-3">
-        {AllComponents.map((component, index) => (
+        {accessibleComponents.map((component, index) => (
           <li key={index} className="relative group cursor-pointer">
             {component.value === "signout" ? (
               <a

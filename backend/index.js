@@ -11,8 +11,8 @@ import path from "path";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
-import OrdersRouter from "./routes/OrdersRoute.js";
 import OrdersRout from "./routes/OrdersRoute.js";
+import ReportRouter from "./routes/ordersReportRout.js";
 const port = 8038;
 const app = express();
 
@@ -32,6 +32,7 @@ app.use("/records", recordRout);
 app.use("/children", childrenRout);
 app.use("/appointment", appointmentRout);
 app.use("/orders", OrdersRout);
+app.use("/report", ReportRouter);
 
 // Sync database and start server
 sequelize
