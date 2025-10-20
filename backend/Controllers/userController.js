@@ -1,9 +1,10 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../Models/user.js";
-
+import crypto from "crypto";
+import nodemailer from "nodemailer";
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret_key";
-
+const frontUrl = process.env.FRONT_URL;
 // ✅ Register new user
 export const registerUser = async (req, res) => {
   try {
@@ -170,5 +171,74 @@ export const changePassword = async (req, res) => {
   } catch (err) {
     console.error("Error changing password:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const user = await User.findOne({
+      where: {
+        resetToken: token,
+        resetExpires: { [Op.gt]: Date.now() },
+      },
+    });
+
+    if (!user)
+      return res.status(400).json({ message: "لینک نامعتبر یا منقضی است" });
+
+    user.password = await bcrypt.hash(password, 10);
+    user.resetToken = null;
+    user.resetExpires = null;
+    await user.save();
+
+    res.json({ message: "رمز عبور با موفقیت تغییر یافت" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "خطا در تغییر رمز عبور" });
+  }
+};
+
+// controllers/authController.js
+
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) return res.status(404).json({ message: "کاربری با این ایمیل یافت نشد" });
+
+    // generate token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+    const resetExpires = Date.now() + 3600000; // 1 hour
+
+    user.resetToken = resetToken;
+    user.resetExpires = resetExpires;
+    await user.save();
+
+    const resetLink = `${frontUrl}/reset-password/${resetToken}`;
+
+    // configure your transporter
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+
+    await transporter.sendMail({
+      to: user.email,
+      subject: "بازیابی رمز عبور",
+      html: `<p>برای تنظیم رمز عبور جدید <a href="${resetLink}">اینجا کلیک کنید</a>.</p>`,
+    });
+
+    res.json({ message: "لینک بازیابی به ایمیل شما ارسال شد." });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "خطا در ارسال لینک بازیابی" });
   }
 };
