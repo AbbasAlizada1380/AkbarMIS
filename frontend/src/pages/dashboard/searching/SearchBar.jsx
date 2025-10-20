@@ -31,7 +31,7 @@ const SearchBar = forwardRef(({ onResults }, ref) => {
   return (
     <form
       onSubmit={handleSearch}
-      className="flex items-center gap-3  w-[400px]  bg-gray-200 border border-gray-300 rounded-lg px-2 py-2 shadow-sm focus-within:ring-1 focus-within:ring-cyan-800 transition"
+      className="flex items-center gap-3  w-[400px]  bg-gray-50 border border-gray-300 rounded-lg px-2 py-2 shadow-sm focus-within:ring-1 focus-within:ring-cyan-800 transition"
     >
       <Search className="text-gray-400" size={20} />
       <input

@@ -541,7 +541,12 @@ const Orders = () => {
             <tbody>
               {orders && orders.length > 0 ? (
                 orders.map((order, index) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
+                  <tr
+                    key={order.id}
+                    className={`hover:bg-gray-50 ${
+                      order.isDelivered && order.remained === 0 && "bg-blue-100"
+                    } `}
+                  >
                     <td className="border border-gray-300 px-4 py-2">
                       {order.id}
                     </td>
@@ -551,20 +556,26 @@ const Orders = () => {
                     <td className="border border-gray-300 px-4 py-2">
                       {order.customer?.phone_number || order.phone_number}
                     </td>
-                    <td className="border border-gray-300 px-4 py-2">
+                    <td className="border font-semibold border-gray-300 px-4 py-2">
                       {order.total}
                     </td>
-                    <td className="border border-gray-300 px-4 py-2">
+                    <td className="border font-semibold text-green-600 border-gray-300 px-4 py-2">
                       {order.recip}
                     </td>
-                    <td className="border border-gray-300 px-4 py-2">
+                    <td
+                      className={`border font-semibold border-gray-300 px-4 py-2 ${
+                        order.remained === 0 ? "text-black" : "text-red-500"
+                      }`}
+                    >
                       {order.remained}
                     </td>
                     <td className="border border-gray-300 px-4 py-2">
                       {new Date(order.createdAt).toLocaleDateString("fa-AF")}
                     </td>
                     <td className="border  border-gray-300  px-4 py-2">
-                      <div className="w-full flex items-center justify-center text-cyan-800">{order.isDelivered ? <FaCheck /> : <ImCross />}</div>
+                      <div className="w-full flex items-center justify-center text-cyan-800">
+                        {order.isDelivered ? <FaCheck /> : <ImCross />}
+                      </div>
                     </td>
                     <td className="border-b border-gray-300 flex items-center justify-center py-2">
                       <div className="flex  gap-x-2">
