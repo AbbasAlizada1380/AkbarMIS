@@ -357,7 +357,7 @@ const Orders = () => {
                   placeholder="نام مشتری را وارد کنید"
                   value={record.customer.name || ""}
                   onChange={handleCustomerChange}
-                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
+                  className="w-full px-4 py-3 pl-12 border bg-gray-200 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200  text-gray-800 placeholder-gray-400"
                 />
                 <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
@@ -374,7 +374,7 @@ const Orders = () => {
                   placeholder="شماره تماس را وارد کنید"
                   value={record.customer.phone_number || ""}
                   onChange={handleCustomerChange}
-                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
+                  className="w-full px-4 py-3 pl-12 border bg-gray-200 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200  text-gray-800 placeholder-gray-400"
                 />
                 <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
