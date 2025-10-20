@@ -5,6 +5,7 @@ import Report from "./pages/reports";
 import FinanceComponent from "./pages/Financial";
 import Orders from "./pages/Orders";
 import OrdersList from "./pages/OrdersList";
+import AddUser from "./pages/AddUser";
 const MainContent = ({ activeComponent }) => {
   const renderContent = () => {
     switch (activeComponent) {
@@ -30,6 +31,8 @@ const MainContent = ({ activeComponent }) => {
         return <Orders />;
       case "OrdersList":
         return <OrdersList />;
+      case "AddUser":
+        return <AddUser />;
 
       default:
         return <Dashboard />;

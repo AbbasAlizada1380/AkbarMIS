@@ -20,7 +20,7 @@ const createUser = async () => {
     const fullname = await askQuestion("Full name: ");
     const email = await askQuestion("Email: ");
     const password = await askQuestion("Password: ");
-    const role = await askQuestion("Role (admin/user): ");
+    const role = await askQuestion("Role (admin/reception): ");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 

@@ -121,9 +121,9 @@ export const getOrders = async (req, res) => {
         { model: Digital, as: "digital" },
         { model: Offset, as: "offset" },
       ],
+      distinct: true, // <--- important
       limit,
       offset,
-      order: [["id", "DESC"]], // latest first
     });
 
     // Return paginated response
