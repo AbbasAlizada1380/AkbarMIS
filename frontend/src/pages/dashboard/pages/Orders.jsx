@@ -8,6 +8,7 @@ import PrintOrderBill from "./PrintOrderBill";
 import { FaCheck } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
 import Pagination from "../pagination/Pagination.jsx";
+import { IoIosPrint } from "react-icons/io";
 import {
   getOrders,
   createOrder,
@@ -104,6 +105,7 @@ const Orders = () => {
   const [activeSection, setActiveSection] = useState("digital");
   const [editMode, setEditMode] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState(null);
+  const [autoPrint, setAutoPrint] = useState(false); // Add this state
 
   const fetchOrders = async (page = 1) => {
     const data = await getOrders(page, 20);
@@ -284,11 +286,16 @@ const Orders = () => {
   const handleViewBill = (order) => {
     setSelectedOrder(order);
     setIsBillOpen(true);
+    setAutoPrint(shouldPrint);
   };
 
   const handleCloseBill = () => {
     setIsBillOpen(false);
     setSelectedOrder(null);
+    setAutoPrint(false); // Reset autoPrint when closing
+  };
+  const handlePrintBill = (order) => {
+    handleViewBill(order, true);
   };
 
   // Count filled items for display
@@ -488,13 +495,23 @@ const Orders = () => {
               {editMode ? "ویرایش اطلاعات" : "ذخیره اطلاعات"}
             </button>
           </div>
+
           <div className="flex items-end ">
             <button
               onClick={() => handleViewBill(record)}
               className="flex items-center gap-x-2 text-sm bg-purple-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl   transform hover:scale-105"
             >
               <FaEye className="text-lg" />
-              مشاهده فاکتور
+              مشاهده بیل
+            </button>
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={() => handlePrintBill(record)} // Direct print
+              className="flex items-center gap-x-2 text-sm bg-blue-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <IoIosPrint className="text-lg" />
+              چاپ بیل
             </button>
           </div>
         </div>
@@ -620,11 +637,15 @@ const Orders = () => {
 
       {/* Print Bill Modal */}
       {isBillOpen && (
-        <PrintOrderBill
-          isOpen={isBillOpen}
-          onClose={handleCloseBill}
-          order={selectedOrder}
-        />
+        <div className="relative ">
+          {" "}
+          <PrintOrderBill
+            isOpen={isBillOpen}
+            onClose={handleCloseBill}
+            order={selectedOrder}
+            autoPrint={autoPrint}
+          />
+        </div>
       )}
     </div>
   );

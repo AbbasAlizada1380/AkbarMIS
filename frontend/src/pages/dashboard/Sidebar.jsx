@@ -23,13 +23,14 @@ const Sidebar = ({ setActiveComponent }) => {
 
   const handleSignOut = () => {
     MySwal.fire({
-      title: "Are you sure?",
-      text: "You will be logged out!",
+      title: "آیا مطمئن هستید؟",
+      text: "شما از سیستم خارج خواهید شد!",
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3085d6",
       cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, sign out!",
+      confirmButtonText: "بله، خارج شو!",
+      cancelButtonText: "لغو",
     }).then((result) => {
       if (result.isConfirmed) {
         dispatch(signOutSuccess());
@@ -37,7 +38,6 @@ const Sidebar = ({ setActiveComponent }) => {
       }
     });
   };
-
   const AllComponents = [
     { name: "صفحه اصلی", value: "home", icon: <MdOutlineDashboardCustomize /> },
     { name: "سفارشات جدید", value: "Orders", icon: <MdAddShoppingCart /> },
