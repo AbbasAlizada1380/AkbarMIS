@@ -75,9 +75,9 @@ const DigitalSection = ({ record, setRecord }) => {
       quantity: "تعداد",
       height: "ارتفاع",
       weight: "عرض",
-      area: "محاسبه خودکار",
-      price_per_unit: "قیمت هر واحد",
-      money: "مبلغ کل را وارد کنید",
+      area: " ",
+      price_per_unit: "قیمت ",
+      money: "مبلغ کل",
     };
     return placeholders[field] || field;
   };
@@ -125,7 +125,8 @@ const DigitalSection = ({ record, setRecord }) => {
                           onChange={(e) =>
                             updateDigital(i, key, e.target.value)
                           }
-                          className={`w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                          placeholder={getFieldPlaceholder(key)}
+                          className={`w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200 ${
                             key === "area"
                               ? "bg-gray-200 text-gray-600 cursor-not-allowed"
                               : "bg-gray-200 text-gray-800 hover:border-gray-400"
@@ -152,13 +153,19 @@ const DigitalSection = ({ record, setRecord }) => {
             </p>
           )}
         </div>
-        <button
-          onClick={addDigital}
-          className="flex items-center gap-2 text-sm bg-cyan-800 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl"
-        >
-          <FaPlus className="text-base" />
-          افزودن محصول
-        </button>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={addDigital}
+            className="flex items-center gap-2 text-sm bg-cyan-800 text-white px-4 py-3 rounded-xl font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl"
+          >
+            <FaPlus className="text-base" />
+            افزودن سفارش
+          </button>
+          <div className="flex items-center gap-x-2 border-cyan-800 py-1 px-5 ">
+            <span className="text-lg font-semibold text-gray-800">تعداد سفارش دیجیتال:</span>
+            <span className="text-xl font-bold"> {record.digital.length}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

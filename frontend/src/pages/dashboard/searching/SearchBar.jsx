@@ -31,7 +31,7 @@ const SearchBar = forwardRef(({ onResults }, ref) => {
   return (
     <form
       onSubmit={handleSearch}
-      className="flex items-center gap-3 w-full max-w-md mx-auto bg-white border border-gray-300 rounded-2xl px-4 py-2 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 transition"
+      className="flex items-center gap-3  w-[400px]  bg-gray-200 border border-gray-300 rounded-lg px-2 py-2 shadow-sm focus-within:ring-1 focus-within:ring-cyan-800 transition"
     >
       <Search className="text-gray-400" size={20} />
       <input
@@ -43,7 +43,7 @@ const SearchBar = forwardRef(({ onResults }, ref) => {
       />
       <button
         type="submit"
-        className="bg-indigo-600 text-white rounded-xl px-4 py-1 hover:bg-indigo-700 transition"
+        className="bg-cyan-800 text-white rounded-md px-4 py-1  transition"
       >
         جستجو
       </button>

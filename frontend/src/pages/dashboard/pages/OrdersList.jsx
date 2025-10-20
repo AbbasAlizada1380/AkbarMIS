@@ -180,7 +180,7 @@ const OrdersList = () => {
       {/* Header Section */}
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          سیستم مدیریت سفارشات
+          مدیریت سفارشات
         </h1>
         <p className="text-gray-600">مدیریت سفارش‌های مشتریان و خدمات چاپی</p>
         {editMode && (
@@ -195,7 +195,7 @@ const OrdersList = () => {
         )}
       </div>
 
-      {editMode && (
+      {/* {editMode && (
         <>
           {" "}
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
@@ -255,7 +255,7 @@ const OrdersList = () => {
               </div>
             </div>
           </div>
-          {/* Section Toggle Buttons */}
+        
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-purple-100 rounded-full">
@@ -290,7 +290,7 @@ const OrdersList = () => {
               </button>
             </div>
 
-            {/* Dynamic Section Display */}
+    
             <div className="transition-all duration-300">
               {activeSection === "digital" && (
                 <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
@@ -305,11 +305,11 @@ const OrdersList = () => {
               )}
             </div>
           </div>
-          {/* Bill Summary */}
+       
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <BillSummary record={record} />
           </div>
-          {/* Payment Section */}
+         
           <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-3 bg-green-100 rounded-full">
@@ -369,42 +369,39 @@ const OrdersList = () => {
             </div>
           </div>
         </>
-      )}
+      )} */}
 
       {/* Orders Table */}
-      <div className="flex flex-col gap-2">
+      <div className="flex justify-center gap-2">
+        <SearchBar ref={searchRef} onResults={setSearchResult} />
         <button
           onClick={() => searchRef.current?.reset()}
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors"
+          className="flex items-center gap-2 text-gray-50 border border-cayn-800 cursor-pointer bg-cyan-800 rounded-lg px-2  transition-colors"
         >
           <FaArrowCircleDown className="text-xl" />
           پاک کردن جستجو
         </button>
-
-        <SearchBar ref={searchRef} onResults={setSearchResult} />
       </div>
-      <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-orange-100 rounded-full">
-            <FaFileInvoice className="text-orange-600 text-xl" />
+      <div className="bg-white rounded-lg shadow-lgborder border-gray-100">
+        <div className="flex items-center gap-3  p-6 ">
+          <div className="p-3 bg-blue-100 rounded-full">
+            <FaFileInvoice className="text-cyan-800 text-xl" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800">لیست سفارشات</h2>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-center border-collapse border border-gray-300">
-            <thead className="bg-blue-100">
+          <table className="w-full text-center  border border-gray-300">
+            <thead className="bg-cyan-800 text-gray-50">
               <tr>
-                <th className="border border-gray-300 px-4 py-2">شماره</th>
+                <th className="border border-gray-100 px-4 py-2"> شماره بیل</th>
                 <th className="border border-gray-300 px-4 py-2">نام مشتری</th>
                 <th className="border border-gray-300 px-4 py-2">شماره تماس</th>
                 <th className="border border-gray-300 px-4 py-2">مجموع</th>
                 <th className="border border-gray-300 px-4 py-2">دریافتی</th>
                 <th className="border border-gray-300 px-4 py-2">باقیمانده</th>
                 <th className="border border-gray-300 px-4 py-2">تاریخ</th>
-                <th className="border border-gray-300 px-4 py-2">
-                  تحویل داده شده
-                </th>
+                <th className="border border-gray-300 px-4 py-2">تحویلی</th>
                 <th className="border border-gray-300 px-4 py-2">عملیات</th>
               </tr>
             </thead>
@@ -435,81 +432,78 @@ const OrdersList = () => {
                   <td className="border border-gray-300 px-4 py-2">
                     {new Date(order.createdAt).toLocaleDateString("fa-AF")}
                   </td>
-                  <td className="border border-gray-300 px-4 py-2 flex gap-2">
-                    {/* Toggle delivery */}
-                    <button
-                      onClick={async () => {
-                        try {
-                          const updated = await toggleDelivery(
-                            order.id,
-                            order.isDelivered
-                          );
+                  <td className="border border-gray-300  py-2 ">
+                    <div className="flex justify-center gap-x-2 items-center">
+                      {/* Toggle delivery */}
+                      <button
+                        onClick={async () => {
+                          try {
+                            const updated = await toggleDelivery(
+                              order.id,
+                              order.isDelivered
+                            );
 
-                          // Update main orders
-                          setOrders((prev) =>
-                            prev.map((o) => (o.id === order.id ? updated : o))
-                          );
+                            // Update main orders
+                            setOrders((prev) =>
+                              prev.map((o) => (o.id === order.id ? updated : o))
+                            );
 
-                          // Update search result if it exists
-                          setSearchResult((prev) =>
-                            prev?.length
-                              ? prev.map((o) =>
-                                  o.id === order.id ? updated : o
-                                )
-                              : prev
-                          );
-                        } catch (err) {
-                          console.error("Error toggling delivery:", err);
-                        }
-                      }}
-                      className="p-2 rounded bg-gray-200 hover:bg-gray-300"
-                    >
-                      {order.isDelivered ? (
-                        <FaCheck className="text-green-500" />
-                      ) : (
-                        <ImCross className="text-red-500" />
-                      )}
-                    </button>
+                            // Update search result if it exists
+                            setSearchResult((prev) =>
+                              prev?.length
+                                ? prev.map((o) =>
+                                    o.id === order.id ? updated : o
+                                  )
+                                : prev
+                            );
+                          } catch (err) {
+                            console.error("Error toggling delivery:", err);
+                          }
+                        }}
+                        className="p-2 rounded bg-gray-200 hover:bg-gray-300"
+                      >
+                    <div className="w-full flex items-center gap-x-2 justify-center text-cyan-800">{order.isDelivered ? <FaCheck /> : <ImCross />}</div>
+                      </button>
 
-                    {/* Pay remaining */}
-                    <button
-                      onClick={async () => {
-                        try {
-                          const updated = await payRemaining(order);
+                      {/* Pay remaining */}
+                      <button
+                        onClick={async () => {
+                          try {
+                            const updated = await payRemaining(order);
 
-                          // Update main orders
-                          setOrders((prev) =>
-                            prev.map((o) => (o.id === order.id ? updated : o))
-                          );
+                            // Update main orders
+                            setOrders((prev) =>
+                              prev.map((o) => (o.id === order.id ? updated : o))
+                            );
 
-                          // Update search result if it exists
-                          setSearchResult((prev) =>
-                            prev?.length
-                              ? prev.map((o) =>
-                                  o.id === order.id ? updated : o
-                                )
-                              : prev
-                          );
-                        } catch (err) {
-                          console.error("Error paying remaining:", err);
-                        }
-                      }}
-                      className="px-3 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    >
-                      پرداخت باقی‌مانده
-                    </button>
+                            // Update search result if it exists
+                            setSearchResult((prev) =>
+                              prev?.length
+                                ? prev.map((o) =>
+                                    o.id === order.id ? updated : o
+                                  )
+                                : prev
+                            );
+                          } catch (err) {
+                            console.error("Error paying remaining:", err);
+                          }
+                        }}
+                        className="px-3 py-1 bg-cyan-800 text-white rounded hover:bg-blue-600"
+                      >
+                        تصفیه باقیداری
+                      </button>
+                    </div>
                   </td>
 
-                  <td className="border border-gray-300 px-4 py-2">
-                    <div className="flex flex-col gap-2">
+                  <td className="border-b border-gray-300 flex items-center justify-center py-2">
+                    <div className="flex  gap-x-2">
                       <button
                         onClick={() => handleViewBill(order)}
-                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
+                        className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
                       >
-                        <FaEye className="text-sm" />
-                        مشاهده فاکتور
+                        <FaEye className="text-cyan-800" size={20} />
                       </button>
-                      <button
+                      {/* <button
                         onClick={async () => {
                           try {
                             const updated = await handleEditOrder(order);
@@ -524,7 +518,7 @@ const OrdersList = () => {
                       >
                         <FaEdit className="text-sm" />
                         ویرایش
-                      </button>
+                      </button> */}
                       <button
                         onClick={async () => {
                           try {
@@ -536,10 +530,9 @@ const OrdersList = () => {
                             console.error("Error deleting order:", err);
                           }
                         }}
-                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
+                        className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
                       >
-                        <FaTimes className="text-sm" />
-                        حذف
+                        <FaTimes className="text-red-600" size={20} />
                       </button>
                     </div>
                   </td>

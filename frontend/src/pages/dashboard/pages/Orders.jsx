@@ -31,20 +31,20 @@ const Orders = () => {
   // Default empty digital item
   const defaultDigitalItem = {
     name: "",
-    quantity: 0,
-    height: 0,
-    weight: 0,
-    area: 0,
-    price_per_unit: 0,
-    money: 0,
+    quantity: null,
+    height: null,
+    weight: null,
+    area: null,
+    price_per_unit: null,
+    money: null,
   };
 
   // Default empty offset item
   const defaultOffsetItem = {
     name: "",
-    quantity: 0,
-    price_per_unit: 0,
-    money: 0,
+    quantity: null,
+    price_per_unit: null,
+    money: null,
   };
 
   // Helper function to check if a digital item is filled
@@ -92,7 +92,7 @@ const Orders = () => {
     total_money_digital: 0,
     total_money_offset: 0,
     total: 0,
-    recip: 0,
+    recip: null,
     remained: 0,
   });
 
@@ -315,65 +315,8 @@ const Orders = () => {
         )}
       </div>
 
-      {/* Customer Information Card */}
-      <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-blue-100 rounded-full">
-              <FaUser className="text-blue-600 text-xl" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800">معلومات مشتری</h2>
-          </div>
-          {editMode && (
-            <button
-              onClick={resetForm}
-              className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
-            >
-              <FaTimes className="text-sm" />
-              لغو ویرایش
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <label className="block text-base font-medium text-gray-700 mb-2">
-              نام مشتری *
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="name"
-                placeholder="نام مشتری را وارد کنید"
-                value={record.customer.name || ""}
-                onChange={handleCustomerChange}
-                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
-              />
-              <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-base font-medium text-gray-700 mb-2">
-              شماره تماس
-            </label>
-            <div className="relative">
-              <input
-                type="text"
-                name="phone_number"
-                placeholder="شماره تماس را وارد کنید"
-                value={record.customer.phone_number || ""}
-                onChange={handleCustomerChange}
-                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-1 focus:ring-gray-600 transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
-              />
-              <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Section Toggle Buttons */}
-      <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+      <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
         <div className="bg-white rounded-2xl  p-3  border-gray-200">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
@@ -435,7 +378,7 @@ const Orders = () => {
         <div className="flex gap-4 mb-6 mt-4">
           <button
             onClick={() => setActiveSection("digital")}
-            className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg ${
+            className={`flex items-center gap-3 px-6 py-3 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg ${
               activeSection === "digital"
                 ? "bg-cyan-800 text-white shadow-blue-200"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -447,7 +390,7 @@ const Orders = () => {
 
           <button
             onClick={() => setActiveSection("offset")}
-            className={`flex items-center gap-3 px-6 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg ${
+            className={`flex items-center gap-3 px-6 py-3 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg ${
               activeSection === "offset"
                 ? "bg-cyan-800 text-white shadow-blue-200"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -467,7 +410,7 @@ const Orders = () => {
           )}
 
           {activeSection === "offset" && (
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+            <div className="">
               <OffsetSection record={record} setRecord={setRecord} />
             </div>
           )}
@@ -475,63 +418,65 @@ const Orders = () => {
       </div>
 
       {/* Bill Summary */}
-      <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+      <div className="">
         <BillSummary record={record} />
       </div>
 
       {/* Payment Section */}
-      <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
+      <div className="bg-white rounded-lg shadow-xl p-6 border border-gray-100">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-green-100 rounded-full">
-            <FaMoneyBillWave className="text-green-600 text-xl" />
+          <div className="p-3 bg-blue-100 rounded-full">
+            <FaMoneyBillWave className="text-cyan-800 text-xl" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800">اطلاعات پرداخت</h2>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              مبلغ دریافتی
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="مبلغ دریافتی را وارد کنید"
-                value={record.recip}
-                onChange={handleRecipChange}
-                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 bg-white text-gray-800 placeholder-gray-400"
-              />
-              <FaMoneyBillWave className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+        <div className="flex   gap-x-6">
+          <div className="flex items-center gap-x-4 flex-1">
+            <div className="space-y-2 w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                مبلغ دریافتی
+              </label>
+              <div className="relative w-full">
+                <input
+                  type="number"
+                  placeholder="مبلغ دریافتی را وارد کنید"
+                  value={record.recip}
+                  onChange={handleRecipChange}
+                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 focus:border-transparent transition-all duration-200 bg-gray-200 text-gray-800 placeholder-gray-400"
+                />
+                <FaMoneyBillWave className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+
+            <div className="space-y-2 w-full">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                مبلغ باقیمانده
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  placeholder="مبلغ باقیمانده"
+                  value={record.remained}
+                  readOnly
+                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 focus:border-transparent transition-all duration-200 bg-gray-200 text-gray-800 placeholder-gray-400cursor-not-allowed"
+                />
+                <FaMoneyBillWave className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              مبلغ باقیمانده
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="مبلغ باقیمانده"
-                value={record.remained}
-                readOnly
-                className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed"
-              />
-              <FaMoneyBillWave className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            </div>
-          </div>
-
-          <div className="flex items-end space-x-4">
+          <div className="flex items-end  ">
             <button
               onClick={saveRecord}
               disabled={
                 !record.customer.name.trim() ||
                 (filledDigitalCount === 0 && filledOffsetCount === 0)
               }
-              className={`flex items-center gap-3 px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+              className={`flex items-center gap-x-3 px-4 py-3.5 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
                 editMode
                   ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-                  : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
+                  : "flex items-center gap-2 text-sm bg-cyan-800 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl"
               } ${
                 !record.customer.name.trim() ||
                 (filledDigitalCount === 0 && filledOffsetCount === 0)
@@ -543,12 +488,21 @@ const Orders = () => {
               {editMode ? "ویرایش اطلاعات" : "ذخیره اطلاعات"}
             </button>
           </div>
+          <div className="flex items-end ">
+            <button
+              onClick={() => handleViewBill(record)}
+              className="flex items-center gap-x-2 text-sm bg-purple-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl   transform hover:scale-105"
+            >
+              <FaEye className="text-lg" />
+              مشاهده فاکتور
+            </button>
+          </div>
         </div>
 
         {/* Validation message */}
         {(!record.customer.name.trim() ||
           (filledDigitalCount === 0 && filledOffsetCount === 0)) && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="mt-5 ">
             <p className="text-red-600 text-sm">
               {!record.customer.name.trim()
                 ? "لطفاً نام مشتری را وارد کنید"
@@ -559,39 +513,28 @@ const Orders = () => {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-center gap-6">
-        <button
-          onClick={() => handleViewBill(record)}
-          className="flex items-center gap-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl"
-        >
-          <FaEye className="text-lg" />
-          مشاهده فاکتور
-        </button>
-      </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-2xl shadow-xl p-6 border border-gray-100">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-orange-100 rounded-full">
-            <FaFileInvoice className="text-orange-600 text-xl" />
+      <div className="bg-white rounded-lg shadow-lg border border-gray-100">
+        <div className="flex items-center gap-3  p-6">
+          <div className="p-3 bg-blue-100 rounded-full">
+            <FaFileInvoice className="text-cyan-800 text-xl" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800">لیست سفارشات</h2>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-center border-collapse border border-gray-300">
-            <thead className="bg-blue-100">
+          <table className="w-full text-center  border border-gray-300">
+            <thead className="bg-cyan-800 text-gray-50">
               <tr>
-                <th className="border border-gray-300 px-4 py-2">شماره</th>
-                <th className="border border-gray-300 px-4 py-2">نام مشتری</th>
-                <th className="border border-gray-300 px-4 py-2">شماره تماس</th>
-                <th className="border border-gray-300 px-4 py-2">مجموع</th>
-                <th className="border border-gray-300 px-4 py-2">دریافتی</th>
-                <th className="border border-gray-300 px-4 py-2">باقیمانده</th>
-                <th className="border border-gray-300 px-4 py-2">تاریخ</th>
-                <th className="border border-gray-300 px-4 py-2">
-                  تحویل داده شده
-                </th>
+                <th className="border border-gray-100 px-4 py-2"> شماره بیل</th>
+                <th className="border border-gray-100 px-4 py-2">نام مشتری</th>
+                <th className="border border-gray-100 px-4 py-2">شماره تماس</th>
+                <th className="border border-gray-100 px-4 py-2">مجموع</th>
+                <th className="border border-gray-100 px-4 py-2">دریافتی</th>
+                <th className="border border-gray-100 px-4 py-2">باقیمانده</th>
+                <th className="border border-gray-100 px-4 py-2">تاریخ</th>
+                <th className="border border-gray-100 px-4 py-2">تحویلی</th>
                 <th className="border border-gray-300 px-4 py-2">عملیات</th>
               </tr>
             </thead>
@@ -620,31 +563,28 @@ const Orders = () => {
                     <td className="border border-gray-300 px-4 py-2">
                       {new Date(order.createdAt).toLocaleDateString("fa-AF")}
                     </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {order.isDelivered ? <FaCheck /> : <ImCross />}
+                    <td className="border  border-gray-300  px-4 py-2">
+                      <div className="w-full flex items-center justify-center text-cyan-800">{order.isDelivered ? <FaCheck /> : <ImCross />}</div>
                     </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <div className="flex flex-col gap-2">
+                    <td className="border-b border-gray-300 flex items-center justify-center py-2">
+                      <div className="flex  gap-x-2">
                         <button
                           onClick={() => handleViewBill(order)}
-                          className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
+                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
                         >
-                          <FaEye className="text-sm" />
-                          مشاهده فاکتور
+                          <FaEye className="text-cyan-800" size={20} />
                         </button>
                         <button
                           onClick={() => handleEditOrder(order)}
-                          className="flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
+                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
                         >
-                          <FaEdit className="text-sm" />
-                          ویرایش
+                          <FaEdit className="text-green-600" size={20} />
                         </button>
                         <button
                           onClick={() => handleDeleteOrder(order.id)}
-                          className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
+                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
                         >
-                          <FaTimes className="text-sm" />
-                          حذف
+                          <FaTimes className="text-red-600" size={20} />
                         </button>
                       </div>
                     </td>
