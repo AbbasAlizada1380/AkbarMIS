@@ -1,12 +1,12 @@
 import axios from "axios";
 import Swal from "sweetalert2";
 
-const API_URL = "/api/user/";
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 // ✅ Create user
 export const createUser = async (userData) => {
   try {
-    const res = await axios.post(`${API_URL}create/`, userData);
+    const res = await axios.post(`${BASE_URL}/users/register/`, userData);
     Swal.fire({
       icon: "success",
       title: "کاربر با موفقیت اضافه شد!",
@@ -27,7 +27,7 @@ export const createUser = async (userData) => {
 // ✅ Get all users
 export const getUsers = async () => {
   try {
-    const res = await axios.get(`${API_URL}list/`);
+    const res = await axios.get(`${BASE_URL}/users/`);
     return res.data;
   } catch (error) {
     Swal.fire({
@@ -42,7 +42,7 @@ export const getUsers = async () => {
 // ✅ Update user
 export const updateUser = async (id, userData) => {
   try {
-    const res = await axios.put(`${API_URL}update/${id}/`, userData);
+    const res = await axios.put(`${BASE_URL}/users/update/${id}/`, userData);
     Swal.fire({
       icon: "success",
       title: "اطلاعات کاربر با موفقیت بروزرسانی شد!",

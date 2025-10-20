@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { createUser } from "../services/UserServices"; // import the service
+import React, { useState, useEffect } from "react";
+import Swal from "sweetalert2";
+import { createUser, getUsers } from "../services/UserServices";
 
 const AddUser = () => {
   const [form, setForm] = useState({
@@ -9,8 +10,25 @@ const AddUser = () => {
     confirmPassword: "",
     role: "",
   });
+  const [roles] = useState([{ id: 1, name: "reception" }]);
+  const [users, setUsers] = useState([]);
 
-  const [roles, setRoles] = useState([{ id: 1, name: "reception" }]);
+  // Fetch users on component mount
+  const fetchUsers = async () => {
+    try {
+      const res = await getUsers();
+      // Adjust based on your service response structure
+      setUsers(res || []);
+      console.log(res);
+      
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -29,20 +47,41 @@ const AddUser = () => {
       return;
     }
 
-    await createUser({
-      fullname: form.fullname,
-      email: form.email,
-      password: form.password,
-      role: form.role,
-    });
+    try {
+      // Use your service function to create the user
+      const newUser = await createUser({
+        fullname: form.fullname,
+        email: form.email,
+        password: form.password,
+        role: form.role,
+      });
 
-    setForm({
-      fullname: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      role: "",
-    });
+      Swal.fire({
+        icon: "success",
+        title: "کاربر اضافه شد!",
+        text: `${newUser.fullname} با نقش ${newUser.role} ثبت شد.`,
+      });
+
+      // Reset the form
+      setForm({
+        fullname: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+        role: "",
+      });
+
+      // Refresh user list
+      fetchUsers();
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "خطا در ثبت کاربر",
+        text:
+          err.response?.data?.message || err.message || "مشکلی پیش آمده است.",
+      });
+    }
   };
 
   return (
@@ -50,7 +89,7 @@ const AddUser = () => {
       <h2 className="text-xl font-bold text-center mb-6 text-gray-700">
         افزودن کاربر جدید
       </h2>
-{/* form */}
+
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Fullname */}
         <div className="relative">
@@ -141,8 +180,28 @@ const AddUser = () => {
         >
           افزودن کاربر
         </button>
-          </form>
-          <table></table>
+      </form>
+
+      {/* Users Table */}
+      <table className="w-full mt-6 border border-gray-300">
+        <thead>
+          <tr className="bg-gray-100">
+            <th className="p-2 border">Full Name</th>
+            <th className="p-2 border">Email</th>
+            <th className="p-2 border">Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Array.isArray(users) &&
+            users.map((user) => (
+              <tr key={user.id}>
+                <td className="p-2 border">{user.fullname}</td>
+                <td className="p-2 border">{user.email}</td>
+                <td className="p-2 border">{user.role}</td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
     </div>
   );
 };
