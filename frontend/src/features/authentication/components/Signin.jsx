@@ -180,7 +180,7 @@ const Signin = () => {
               </div>
             </div>
           )}
-
+          <a href="/forgot_password"> رمز عبور خود را فراموش کرده اید؟</a>
           {/* Footer */}
           <div className="text-center pt-4 border-t border-gray-100">
             <p className="text-gray-600 text-sm">

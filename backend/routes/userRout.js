@@ -8,10 +8,14 @@ import {
   deactivateUser,
   reactivateUser,
   changePassword,
+  forgotPassword,
+  resetPassword,
 } from "../Controllers/userController.js";
 
 const userrouter = express.Router();
 
+userrouter.post("/forgot-password", forgotPassword);
+userrouter.post("/reset-password/:token", resetPassword);
 userrouter.post("/register", registerUser);
 userrouter.post("/login", loginUser);
 userrouter.get("/", getAllUsers);
