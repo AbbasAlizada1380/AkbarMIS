@@ -9,7 +9,7 @@ import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 import OrdersRout from "./routes/OrdersRoute.js";
 import ReportRouter from "./routes/ordersReportRout.js";
-
+const FRONT_URL=process.env.FRONT_URL
 const port = 8038;
 const app = express();
 
@@ -18,9 +18,8 @@ const __dirname = dirname(__filename);
 
 // ✅ Configure CORS properly
 const allowedOrigins = [
-  "http://localhost:5173", // React local dev
+  `${FRONT_URL}`, // React local dev
   "http://localhost:3000",
-  "https://tamadonprintingpress.com", // production domain (replace with yours)
 ];
 
 app.use(
