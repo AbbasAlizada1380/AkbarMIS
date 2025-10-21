@@ -146,14 +146,7 @@ const Navbar = () => {
                   <FaUser className="ml-2 text-gray-500" />
                   پروفایل کاربری
                 </button>
-                <Link
-                  to="/dashboard" // Adjust link if needed
-                  onClick={() => setIsProfileDropdownOpen(false)}
-                  className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-                >
-                  <FaCog className="ml-2 text-gray-500" />
-                  تنظیمات
-                </Link>
+              
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-2 border-t border-gray-100"
