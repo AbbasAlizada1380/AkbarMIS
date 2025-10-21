@@ -104,17 +104,48 @@ export const getUserById = async (req, res) => {
   }
 };
 
-// ✅ Update user info
+
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullname, email, role, isActive } = req.body;
+    const { fullname, email, password, newPassword, currentPassword } =
+      req.body;
 
+    // Find user by ID
     const user = await User.findByPk(id);
     if (!user) return res.status(404).json({ message: "User not found." });
 
-    await user.update({ fullname, email, role, isActive });
-    res.json({ message: "User updated successfully", user });
+    // Check if current password is correct
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res
+        .status(400)
+        .json({ message: "Current password is incorrect." });
+    }
+
+    // Prepare updated data
+    const updateData = {
+      fullname: fullname || user.fullname,
+      email: email || user.email,
+    };
+
+    // If new password provided, hash it
+    if (newPassword) {
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      updateData.password = hashedPassword;
+    }
+
+    // Update user
+    await user.update(updateData);
+
+    res.json({
+      message: "User updated successfully.",
+      user: {
+        id: user.id,
+        fullname: user.fullname,
+        email: user.email,
+      },
+    });
   } catch (err) {
     console.error("Error updating user:", err);
     res.status(500).json({ message: "Server error" });
