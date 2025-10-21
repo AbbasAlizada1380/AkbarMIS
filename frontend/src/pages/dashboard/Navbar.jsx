@@ -188,7 +188,7 @@ const Navbar = () => {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute end-0 z-50 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 backdrop-blur-sm bg-white/95"
+                  className="absolute end-0 z-50 mt-2 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 backdrop-blur-sm"
                 >
                   {/* User Info Header */}
                   <div className="p-4 border-b border-gray-100">
