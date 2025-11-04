@@ -67,6 +67,18 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
   const handlePrint = () => {
     window.print();
   };
+const now = new Date();
+
+// Format date and time together
+const dateTime = now.toLocaleString("fa-AF", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
 
   return (
     <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4 print:bg-transparent print:p-0">
@@ -87,7 +99,7 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
             <p className="text-sm opacity-90">Akbar Printing House</p>
             <div className="flex justify-between items-center mt-2 text-xs">
               <span>شماره: {billNumber}</span>
-              <span>تاریخ: {today}</span>
+              <span>تاریخ: {dateTime}</span>
             </div>
           </div>
 
@@ -114,8 +126,9 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
             {filledDigital.length > 0 && (
               <div className="mb-4">
                 <h3 className="text-sm font-bold text-green-700 mb-2 bg-green-50 p-2 rounded border-r-4 border-green-500">
-                  چاپ دیجیتال
+                  چاپ دیجیتال : { order.digitalId}
                 </h3>
+              
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs border border-gray-300">
                     <thead className="bg-gray-100">

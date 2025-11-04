@@ -100,18 +100,18 @@ export const createOrder = async (req, res) => {
       recip,
       remained,
       total,
-      digitalId,
+      digitalId, // <-- take from request body
       total_money_digital,
       total_money_offset,
     } = req.body;
 
-    // Create order with customer JSON
+    // Create order with customer JSON and digitalId
     const order = await Order.create({
       customer,
       recip,
       remained,
       total,
-      digitalId,
+      digitalId, // <-- added here
       total_money_digital,
       total_money_Offset: total_money_offset,
       isDelivered: false,
@@ -149,6 +149,7 @@ export const createOrder = async (req, res) => {
     res.status(500).json({ message: "Error creating order", error });
   }
 };
+
 
 // Get all orders
 export const getOrders = async (req, res) => {
