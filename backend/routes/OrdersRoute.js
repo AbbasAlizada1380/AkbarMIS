@@ -8,12 +8,14 @@ import {
   deleteOrder,
   searchOrders,
   updateOrderProperties,
+  getOrdersByDateRange,
 } from "../Controllers/OrdersController.js";
 
 const OrdersRout = express.Router();
 
 OrdersRout.patch("/:id", updateOrderProperties);
 OrdersRout.get("/search", searchOrders);
+OrdersRout.get("/download", getOrdersByDateRange);
 OrdersRout.post("/", createOrder);
 OrdersRout.get("/", getOrders);
 OrdersRout.get("/:id", getOrderById);

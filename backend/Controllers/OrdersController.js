@@ -1,6 +1,47 @@
 import { Order, Digital, Offset } from "../Models/Orders.js";
 import { Sequelize, Op } from "sequelize";
 
+
+// ✅ Get ALL orders within a specific date range (no pagination)
+export const getOrdersByDateRange = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Build date range condition only if provided
+    const dateCondition =
+      startDate && endDate
+        ? {
+            createdAt: {
+              [Op.between]: [
+                new Date(`${startDate}T00:00:00`),
+                new Date(`${endDate}T23:59:59`),
+              ],
+            },
+          }
+        : {};
+
+    // Fetch ALL filtered orders (latest first)
+    const orders = await Order.findAll({
+      where: dateCondition,
+      include: [
+        { model: Digital, as: "digital" },
+        { model: Offset, as: "offset" },
+      ],
+      order: [["id", "DESC"]],
+    });
+
+    // Return all results
+    res.json({
+      totalOrders: orders.length,
+      dateRange: { startDate, endDate },
+      orders,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching orders by date", error });
+  }
+};
+
 export const searchOrders = async (req, res) => {
   try {
     const { q } = req.query;

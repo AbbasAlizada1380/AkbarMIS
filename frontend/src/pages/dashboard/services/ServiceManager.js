@@ -112,3 +112,41 @@ export const payRemaining = async (order) => {
     throw err;
   }
 };
+
+export const getOrdersByDateRange = async (
+  startDate,
+  endDate,
+  page = 1,
+  limit = 1000
+) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/orders/download`, {
+      params: {
+        startDate,
+        endDate,
+        page,
+        limit,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching orders by date range:", error);
+    throw error;
+  }
+};
+
+export const exportOrdersToCSV = async (startDate, endDate) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/orders/download`, {
+      params: {
+        startDate,
+        endDate,
+      },
+      responseType: "blob", // Important for file download
+    });
+    return response;
+  } catch (error) {
+    console.error("Error exporting orders:", error);
+    throw error;
+  }
+};
