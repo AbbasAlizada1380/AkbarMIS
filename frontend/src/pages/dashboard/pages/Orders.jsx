@@ -26,6 +26,7 @@ import {
   FaLayerGroup,
   FaEdit,
   FaTimes,
+  FaIdCard,
 } from "react-icons/fa";
 
 const Orders = () => {
@@ -95,6 +96,7 @@ const Orders = () => {
     total: 0,
     recip: null,
     remained: 0,
+    digitalId: "", // ✅ Added digitalId field
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -106,7 +108,7 @@ const Orders = () => {
   const [editMode, setEditMode] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [autoPrint, setAutoPrint] = useState(false);
-  const [savedOrderForPrint, setSavedOrderForPrint] = useState(null); // New state to hold saved order for printing
+  const [savedOrderForPrint, setSavedOrderForPrint] = useState(null);
 
   const fetchOrders = async (page = 1) => {
     const data = await getOrders(page, 20);
@@ -153,6 +155,15 @@ const Orders = () => {
     setRecord({
       ...record,
       customer: { ...record.customer, [name]: value },
+    });
+  };
+
+  // ✅ Handle digitalId change
+  const handleDigitalIdChange = (e) => {
+    const value = e.target.value;
+    setRecord({
+      ...record,
+      digitalId: value,
     });
   };
 
@@ -234,6 +245,7 @@ const Orders = () => {
       total: 0,
       recip: 0,
       remained: 0,
+      digitalId: "", // ✅ Reset digitalId field
     });
     setEditMode(false);
     setEditingOrderId(null);
@@ -265,6 +277,7 @@ const Orders = () => {
       total: order.total || 0,
       recip: order.recip || 0,
       remained: order.remained || 0,
+      digitalId: order.digitalId || "", // ✅ Include digitalId when editing
     });
     setEditMode(true);
     setEditingOrderId(order.id);
@@ -370,7 +383,7 @@ const Orders = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="block text-base font-medium text-gray-700 mb-2">
                 نام مشتری
@@ -402,6 +415,24 @@ const Orders = () => {
                   className="w-full px-4 py-3 pl-12 border bg-gray-200 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200  text-gray-800 placeholder-gray-400"
                 />
                 <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+
+            {/* ✅ Added digitalId input field */}
+            <div className="space-y-2">
+              <label className="block text-base font-medium text-gray-700 mb-2">
+                شناسه دیجیتال
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="digitalId"
+                  placeholder="شناسه دیجیتال را وارد کنید"
+                  value={record.digitalId || ""}
+                  onChange={handleDigitalIdChange}
+                  className="w-full px-4 py-3 pl-12 border bg-gray-200 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200  text-gray-800 placeholder-gray-400"
+                />
+                <FaIdCard className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
             </div>
           </div>
@@ -453,6 +484,7 @@ const Orders = () => {
       <div className="">
         <BillSummary record={record} />
       </div>
+
       {/* Payment Section */}
       <div className="bg-white rounded-lg shadow-xl p-6 border border-gray-100">
         <div className="flex   gap-x-6">
@@ -556,8 +588,6 @@ const Orders = () => {
         )}
       </div>
 
-      {/* Action Buttons */}
-
       {/* Orders Table */}
       <div className="bg-white rounded-lg shadow-lg border border-gray-100">
         <div className="flex items-center gap-3  p-6">
@@ -572,6 +602,9 @@ const Orders = () => {
             <thead className="bg-cyan-800 text-gray-50">
               <tr>
                 <th className="border border-gray-100 px-4 py-2"> شماره بیل</th>
+                <th className="border border-gray-100 px-4 py-2">
+                  شناسه دیجیتال
+                </th>
                 <th className="border border-gray-100 px-4 py-2">نام مشتری</th>
                 <th className="border border-gray-100 px-4 py-2">شماره تماس</th>
                 <th className="border border-gray-100 px-4 py-2">مجموع</th>
@@ -593,6 +626,9 @@ const Orders = () => {
                   >
                     <td className="border border-gray-300 px-4 py-2">
                       {order.id}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 font-mono">
+                      {order.digitalId || "-"}
                     </td>
                     <td className="border border-gray-300 px-4 py-2">
                       {order.customer?.name || order.name}
@@ -653,7 +689,7 @@ const Orders = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="9" className="text-gray-500 py-4">
+                  <td colSpan="10" className="text-gray-500 py-4">
                     هیچ سفارشی وجود ندارد
                   </td>
                 </tr>
