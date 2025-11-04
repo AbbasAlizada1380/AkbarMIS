@@ -100,6 +100,7 @@ export const createOrder = async (req, res) => {
       recip,
       remained,
       total,
+      digitalId,
       total_money_digital,
       total_money_offset,
     } = req.body;
@@ -110,6 +111,7 @@ export const createOrder = async (req, res) => {
       recip,
       remained,
       total,
+      digitalId,
       total_money_digital,
       total_money_Offset: total_money_offset,
       isDelivered: false,

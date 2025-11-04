@@ -151,6 +151,7 @@ const seedOrders = async () => {
         total,
         recip,
         remained,
+        
         isDelivered: Math.random() > 0.5,
       });
 

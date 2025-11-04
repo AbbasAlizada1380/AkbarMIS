@@ -68,7 +68,7 @@ const handleDownload = async () => {
       order.recip?.toLocaleString("fa-AF") || 0,
       order.remained?.toLocaleString("fa-AF") || 0,
       moment(order.createdAt).format("jYYYY/jMM/jDD"),
-      order.isDelivered ? "✅" : "❌",
+      order.isDelivered ? "بله" : "نخیر",
     ]);
 
     // ✅ Generate table with proper Persian headers
