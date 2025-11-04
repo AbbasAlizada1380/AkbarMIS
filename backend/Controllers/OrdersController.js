@@ -115,15 +115,16 @@ export const getOrders = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
 
-    // Fetch paginated orders
+    // Fetch paginated orders in reverse (latest first)
     const { count, rows: orders } = await Order.findAndCountAll({
       include: [
         { model: Digital, as: "digital" },
         { model: Offset, as: "offset" },
       ],
-      distinct: true, // <--- important
+      distinct: true, // Ensures correct count when including relations
       limit,
       offset,
+      order: [["id", "DESC"]], // ✅ Sort by id descending (latest first)
     });
 
     // Return paginated response
@@ -139,6 +140,7 @@ export const getOrders = async (req, res) => {
     res.status(500).json({ message: "Error fetching orders", error });
   }
 };
+
 
 // Get single order by ID
 export const getOrderById = async (req, res) => {

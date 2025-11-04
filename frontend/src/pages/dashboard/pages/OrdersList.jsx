@@ -361,7 +361,7 @@ const OrdersList = () => {
                         <FaEdit className="text-sm" />
                         ویرایش
                       </button> */}
-                      <button
+                      {/* <button
                         onClick={async () => {
                           try {
                             await deleteOrder(order.id);
@@ -375,7 +375,7 @@ const OrdersList = () => {
                         className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
                       >
                         <FaTimes className="text-red-600" size={20} />
-                      </button>
+                      </button> */}
                     </div>
                   </td>
                 </tr>

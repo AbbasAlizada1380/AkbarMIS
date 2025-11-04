@@ -243,45 +243,43 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
           </div>
 
           {/* Bill Summary */}
-          <div className="border-t border-gray-300 bg-gray-50 p-3">
-            <div className="space-y-1 text-xs">
-              {filledDigital.length > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">مجموع چاپ دیجیتال:</span>
-                  <span className="font-semibold">
-                    {formatCurrency(total_money_digital)}
+          <div className="flex border-t border-gray-300 bg-gray-50">
+            {/* Left Half — Totals Section */}
+            <div className="w-1/2 border-l border-gray-300 p-4">
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between font-bold border-t border-gray-300 pt-1 text-sm">
+                  <span>مجموع کل:</span>
+                  <span className="text-cyan-800">{formatCurrency(total)}</span>
+                </div>
+                <div className="flex justify-between font-bold border-t border-gray-300 pt-1 text-sm">
+                  <span>
+                    <strong>دریافتی :</strong>
+                  </span>
+                  <span className="text-green-600">
+                    {formatCurrency(order.recip || 0)}
                   </span>
                 </div>
-              )}
-              {filledOffset.length > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">مجموع چاپ افست:</span>
-                  <span className="font-semibold">
-                    {formatCurrency(total_money_offset)}
+                <div className="flex justify-between font-bold border-t border-gray-300 pt-1">
+                  <span
+                    className={remained > 0 ? "text-red-600" : "text-green-600"}
+                  >
+                    باقیمانده:
+                  </span>
+                  <span
+                    className={remained > 0 ? "text-red-600" : "text-green-600"}
+                  >
+                    {formatCurrency(remained)}
                   </span>
                 </div>
-              )}
-              <div className="flex justify-between font-bold border-t border-gray-300 pt-1 text-sm">
-                <span>مجموع کل:</span>
-                <span className="text-cyan-800">{formatCurrency(total)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>مقدار پرداختی:</span>
-                <span className="text-green-600">
-                  {formatCurrency(order.recip || 0)}
-                </span>
-              </div>
-              <div className="flex justify-between font-bold border-t border-gray-300 pt-1">
-                <span
-                  className={remained > 0 ? "text-red-600" : "text-green-600"}
-                >
-                  باقیمانده:
-                </span>
-                <span
-                  className={remained > 0 ? "text-red-600" : "text-green-600"}
-                >
-                  {formatCurrency(remained)}
-                </span>
+            </div>
+
+            {/* Right Half — Signature and Stamp Section */}
+            <div className="w-1/2 flex flex-col items-center justify-center p-4 text-center">
+              <div className="w-full border border-dashed border-gray-400 h-28 flex flex-col items-center justify-center">
+                <p className="text-gray-600 text-sm font-semibold">
+                  محل امضاء و مُهر
+                </p>
               </div>
             </div>
           </div>

@@ -105,7 +105,8 @@ const Orders = () => {
   const [activeSection, setActiveSection] = useState("digital");
   const [editMode, setEditMode] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState(null);
-  const [autoPrint, setAutoPrint] = useState(false); // Add this state
+  const [autoPrint, setAutoPrint] = useState(false);
+  const [savedOrderForPrint, setSavedOrderForPrint] = useState(null); // New state to hold saved order for printing
 
   const fetchOrders = async (page = 1) => {
     const data = await getOrders(page, 20);
@@ -163,7 +164,7 @@ const Orders = () => {
     });
   };
 
-  const saveRecord = async () => {
+  const saveRecord = async (shouldPrint = false) => {
     // Validate customer information
     if (!record.customer.name.trim()) {
       Swal.fire("خطا", "لطفاً نام مشتری را وارد کنید", "error");
@@ -187,18 +188,29 @@ const Orders = () => {
     }
 
     try {
+      let savedOrder;
+
       if (editMode) {
         // Update existing order
-        await updateOrder(editingOrderId, recordToSubmit);
+        savedOrder = await updateOrder(editingOrderId, recordToSubmit);
         Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
       } else {
         // Create new order
-        await createOrder(recordToSubmit);
+        savedOrder = await createOrder(recordToSubmit);
         Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success");
       }
 
       fetchOrders(currentPage);
-      resetForm();
+
+      // If shouldPrint is true, open the bill for printing
+      if (shouldPrint) {
+        setSavedOrderForPrint(savedOrder);
+        setSelectedOrder(savedOrder);
+        setIsBillOpen(true);
+        setAutoPrint(true);
+      } else {
+        resetForm();
+      }
     } catch (err) {
       Swal.fire(
         "خطا",
@@ -226,6 +238,7 @@ const Orders = () => {
     setEditMode(false);
     setEditingOrderId(null);
     setActiveSection("digital");
+    setSavedOrderForPrint(null);
   };
 
   const handleEditOrder = (order) => {
@@ -286,16 +299,28 @@ const Orders = () => {
   const handleViewBill = (order) => {
     setSelectedOrder(order);
     setIsBillOpen(true);
-    setAutoPrint(shouldPrint);
+    setAutoPrint(false);
   };
 
   const handleCloseBill = () => {
     setIsBillOpen(false);
     setSelectedOrder(null);
-    setAutoPrint(false); // Reset autoPrint when closing
+    setAutoPrint(false);
+    // If we were printing a saved order, reset the form
+    if (savedOrderForPrint) {
+      resetForm();
+    }
   };
+
   const handlePrintBill = (order) => {
-    handleViewBill(order, true);
+    setSelectedOrder(order);
+    setIsBillOpen(true);
+    setAutoPrint(true);
+  };
+
+  // Save and Print function
+  const handleSaveAndPrint = () => {
+    saveRecord(true); // Pass true to indicate we want to print after saving
   };
 
   // Count filled items for display
@@ -428,16 +453,8 @@ const Orders = () => {
       <div className="">
         <BillSummary record={record} />
       </div>
-
       {/* Payment Section */}
       <div className="bg-white rounded-lg shadow-xl p-6 border border-gray-100">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <FaMoneyBillWave className="text-cyan-800 text-xl" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800">اطلاعات پرداخت</h2>
-        </div>
-
         <div className="flex   gap-x-6">
           <div className="flex items-center gap-x-4 flex-1">
             <div className="space-y-2 w-full">
@@ -473,9 +490,10 @@ const Orders = () => {
             </div>
           </div>
 
-          <div className="flex items-end  ">
+          <div className="flex items-end  gap-2">
+            {/* Save Button */}
             <button
-              onClick={saveRecord}
+              onClick={() => saveRecord(false)}
               disabled={
                 !record.customer.name.trim() ||
                 (filledDigitalCount === 0 && filledOffsetCount === 0)
@@ -494,6 +512,24 @@ const Orders = () => {
               <FaSave className="text-lg" />
               {editMode ? "ویرایش اطلاعات" : "ذخیره اطلاعات"}
             </button>
+
+            {/* Save and Print Button */}
+            <button
+              onClick={handleSaveAndPrint}
+              disabled={
+                !record.customer.name.trim() ||
+                (filledDigitalCount === 0 && filledOffsetCount === 0)
+              }
+              className={`flex items-center gap-x-2 text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                !record.customer.name.trim() ||
+                (filledDigitalCount === 0 && filledOffsetCount === 0)
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+            >
+              <FaPrint className="text-lg" />
+              ذخیره و چاپ
+            </button>
           </div>
 
           <div className="flex items-end ">
@@ -503,15 +539,6 @@ const Orders = () => {
             >
               <FaEye className="text-lg" />
               مشاهده بیل
-            </button>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={() => handlePrintBill(record)} // Direct print
-              className="flex items-center gap-x-2 text-sm bg-blue-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <IoIosPrint className="text-lg" />
-              چاپ بیل
             </button>
           </div>
         </div>
@@ -607,6 +634,12 @@ const Orders = () => {
                           className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
                         >
                           <FaEdit className="text-green-600" size={20} />
+                        </button>
+                        <button
+                          onClick={() => handlePrintBill(order)}
+                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
+                        >
+                          <FaPrint className="text-blue-600" size={20} />
                         </button>
                         <button
                           onClick={() => handleDeleteOrder(order.id)}

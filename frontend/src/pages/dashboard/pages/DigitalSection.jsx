@@ -1,5 +1,5 @@
 import React from "react";
-import { FaPlus, FaTrash, FaCalculator, FaPrint } from "react-icons/fa";
+import { FaPlus, FaTrash, FaPrint } from "react-icons/fa";
 
 const DigitalSection = ({ record, setRecord }) => {
   const addDigital = () => {
@@ -23,7 +23,7 @@ const DigitalSection = ({ record, setRecord }) => {
   const updateDigital = (index, field, value) => {
     const updated = [...record.digital];
 
-    // For numeric fields, store as number
+    // Parse numeric inputs safely
     if (
       ["quantity", "height", "weight", "price_per_unit", "money"].includes(
         field
@@ -34,18 +34,18 @@ const DigitalSection = ({ record, setRecord }) => {
       updated[index][field] = value;
     }
 
-    const quantity = updated[index].quantity;
-    const height = updated[index].height;
-    const weight = updated[index].weight;
-    const price_per_unit = updated[index].price_per_unit;
+    const quantity = parseFloat(updated[index].quantity) || 0;
+    const height = parseFloat(updated[index].height) || 0;
+    const weight = parseFloat(updated[index].weight) || 0;
+    const price_per_unit = parseFloat(updated[index].price_per_unit) || 0;
 
-    // Calculate area (always calculated automatically)
+    // ✅ Calculate area and round to 2 decimals
     const area = height * weight * quantity;
-    updated[index].area = area;
+    updated[index].area = parseFloat(area.toFixed(2));
 
-    // Only calculate money automatically if money field wasn't the one being updated
+    // ✅ Calculate total money (integer only)
     if (field !== "money") {
-      updated[index].money = price_per_unit * area;
+      updated[index].money = Math.round(price_per_unit * area);
     }
 
     setRecord({ ...record, digital: updated });
@@ -88,7 +88,7 @@ const DigitalSection = ({ record, setRecord }) => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
-            <div className=" bg-blue-100 rounded-lg">
+            <div className="bg-blue-100 rounded-lg">
               <FaPrint className="text-blue-500 text-xl" />
             </div>
           </div>
@@ -100,13 +100,11 @@ const DigitalSection = ({ record, setRecord }) => {
       </div>
 
       {/* Items List */}
-      {/* Items List */}
       <div className="space-y-4">
         <div className="space-y-4">
           {record && record.digital && record.digital.length > 0 ? (
             record.digital.map((d, i) => (
               <div key={i} className="flex items-center gap-x-5">
-                {/* Input Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-x-4">
                   {Object.keys(d).map((key) => (
                     <div
@@ -121,7 +119,7 @@ const DigitalSection = ({ record, setRecord }) => {
                       <div className="relative">
                         <input
                           type={key === "name" ? "text" : "number"}
-                          value={d[key]}
+                          value={d[key] ?? ""}
                           onChange={(e) =>
                             updateDigital(i, key, e.target.value)
                           }
@@ -137,12 +135,12 @@ const DigitalSection = ({ record, setRecord }) => {
                     </div>
                   ))}
                 </div>
-                <div className="flex h-12  w-12  relative">
+                <div className="flex h-12 w-12 relative">
                   <button
                     onClick={() => deleteDigital(i)}
-                    className=" text-red-500 absolute cursor-pointer bottom-0 "
+                    className="text-red-500 absolute cursor-pointer bottom-0"
                   >
-                    <FaTrash className="" size={20} />
+                    <FaTrash size={20} />
                   </button>
                 </div>
               </div>
@@ -153,6 +151,7 @@ const DigitalSection = ({ record, setRecord }) => {
             </p>
           )}
         </div>
+
         <div className="flex items-center justify-between">
           <button
             onClick={addDigital}
@@ -161,9 +160,11 @@ const DigitalSection = ({ record, setRecord }) => {
             <FaPlus className="text-base" />
             افزودن سفارش
           </button>
-          <div className="flex items-center gap-x-2 border-cyan-800 py-1 px-5 ">
-            <span className="text-lg font-semibold text-gray-800">تعداد سفارش دیجیتال:</span>
-            <span className="text-xl font-bold"> {record.digital.length}</span>
+          <div className="flex items-center gap-x-2 border-cyan-800 py-1 px-5">
+            <span className="text-lg font-semibold text-gray-800">
+              تعداد سفارش دیجیتال:
+            </span>
+            <span className="text-xl font-bold">{record.digital.length}</span>
           </div>
         </div>
       </div>
