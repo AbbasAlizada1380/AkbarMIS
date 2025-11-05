@@ -213,6 +213,7 @@ export const updateOrder = async (req, res) => {
       recip,
       remained,
       total,
+      digitalId,
       total_money_digital,
       total_money_offset,
       digital,
@@ -228,6 +229,7 @@ export const updateOrder = async (req, res) => {
       recip: recip ?? order.recip,
       remained: remained ?? order.remained,
       total: total ?? order.total,
+      digitalId: digitalId ?? order.digitalId,
       total_money_digital: total_money_digital ?? order.total_money_digital,
       total_money_Offset: total_money_offset ?? order.total_money_Offset,
     });

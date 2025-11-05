@@ -111,6 +111,7 @@ const generateOrderData = () => {
   const total_money_digital = digital.reduce((sum, d) => sum + d.money, 0);
   const total_money_Offset = offset.reduce((sum, o) => sum + o.money, 0);
   const total = total_money_digital + total_money_Offset;
+  const digitalId = total_money_digital + total_money_Offset;
   const recip = random(0, total);
   const remained = total - recip;
 
@@ -121,6 +122,7 @@ const generateOrderData = () => {
     total_money_digital,
     total_money_Offset,
     total,
+    digitalId,
     recip,
     remained,
   };
@@ -139,6 +141,7 @@ const seedOrders = async () => {
         total_money_digital,
         total_money_Offset,
         total,
+        digitalId,
         recip,
         remained,
       } = generateOrderData();
@@ -149,9 +152,10 @@ const seedOrders = async () => {
         total_money_digital,
         total_money_Offset,
         total,
+        digitalId,
         recip,
         remained,
-        
+
         isDelivered: Math.random() > 0.5,
       });
 

@@ -28,8 +28,10 @@ import {
   FaTimes,
   FaIdCard,
 } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 const Orders = () => {
+  const { currentUser } = useSelector((state) => state.user);
   // Default empty digital item
   const defaultDigitalItem = {
     name: "",
@@ -94,6 +96,7 @@ const Orders = () => {
     total_money_digital: 0,
     total_money_offset: 0,
     total: 0,
+    digitalId:0,
     recip: null,
     remained: 0,
     digitalId: "", // ✅ Added digitalId field
@@ -176,12 +179,7 @@ const Orders = () => {
   };
 
   const saveRecord = async (shouldPrint = false) => {
-    // Validate customer information
-    if (!record.customer.name.trim()) {
-      Swal.fire("خطا", "لطفاً نام مشتری را وارد کنید", "error");
-      return;
-    }
-
+   
     // Prepare the record by filtering out empty items
     const recordToSubmit = prepareRecordForSubmit(record);
 
@@ -275,6 +273,7 @@ const Orders = () => {
       total_money_digital: order.total_money_digital || 0,
       total_money_offset: order.total_money_offset || 0,
       total: order.total || 0,
+      digitalId: order.digitalId || 0,
       recip: order.recip || 0,
       remained: order.remained || 0,
       digitalId: order.digitalId || "", // ✅ Include digitalId when editing
@@ -677,12 +676,12 @@ const Orders = () => {
                         >
                           <FaPrint className="text-blue-600" size={20} />
                         </button>
-                        <button
+                      {currentUser.role=="admin"&&  <button
                           onClick={() => handleDeleteOrder(order.id)}
                           className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
                         >
                           <FaTimes className="text-red-600" size={20} />
-                        </button>
+                        </button>}
                       </div>
                     </td>
                   </tr>

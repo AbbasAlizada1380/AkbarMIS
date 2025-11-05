@@ -73,13 +73,50 @@ export const updateOrder = async (id, orderData) => {
 };
 
 // ✅ Delete an order
+
 export const deleteOrder = async (id) => {
   try {
+    // 🟡 مرحله تأیید قبل از حذف
+    const result = await Swal.fire({
+      title: "آیا مطمئن هستید؟",
+      text: `آیا می‌خواهید  بیل ${id}را حذف کنید؟ این عمل قابل بازگشت نیست!`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "بله، حذف شود",
+      cancelButtonText: "خیر، لغو",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      Swal.fire({
+        icon: "info",
+        title: "حذف لغو شد",
+        text: "عملیات حذف انجام نگردید.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    // ✅ اگر کاربر تأیید کرد، حذف را انجام بده
     await axios.delete(`${BASE_URL}/orders/${id}`);
-    showAlert("حذف شد", "بیل با موفقیت حذف شد 🗑️", "success");
+
+    Swal.fire({
+      icon: "success",
+      title: "حذف موفقانه انجام شد",
+      text: "بیل با موفقیت حذف گردید 🗑️",
+      timer: 2000,
+      showConfirmButton: false,
+    });
   } catch (error) {
-    console.error(error);
-    showAlert("خطا", "خطا در حذف بیل 😢", "error");
+    console.error("Error deleting order:", error);
+
+    Swal.fire({
+      icon: "error",
+      title: "خطا در حذف",
+      text: "در هنگام حذف بیل خطایی رخ داد. لطفاً دوباره تلاش کنید 😢",
+    });
+
     throw error;
   }
 };
@@ -91,7 +128,7 @@ export const toggleDelivery = async (orderId, currentStatus) => {
       isDelivered: !currentStatus,
     });
 
-    Swal.fire("موفق", `وضعیت تحویل تغییر کرد ✅`, "success");
+    Swal.fire("موفق", `وضعیت تحویل بیل نمبر${orderId} تغییر کرد ✅`, "success");
     return res.data;
     // Optionally, refresh your order list or update state
     getOrders(); // if you have a fetch function
@@ -100,19 +137,61 @@ export const toggleDelivery = async (orderId, currentStatus) => {
     Swal.fire("خطا", "تغییر وضعیت تحویل انجام نشد 😢", "error");
   }
 };
+
+
 export const payRemaining = async (order) => {
   try {
+    // 🟡 مرحله تأیید قبل از پرداخت
+    const result = await Swal.fire({
+      title: "آیا مطمئن هستید؟",
+      text: "آیا می‌خواهید باقی‌مانده پول این سفارش را پرداخت کنید؟",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "بله، پرداخت شود",
+      cancelButtonText: "خیر، لغو",
+      reverseButtons: true,
+    });
+
+    if (!result.isConfirmed) {
+      Swal.fire({
+        icon: "info",
+        title: "پرداخت لغو شد",
+        text: "عملیات پرداخت انجام نگردید.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+      return;
+    }
+
+    // ✅ اگر کاربر تأیید کرد، پرداخت را انجام بده
     const updatedOrder = await axios.patch(`${BASE_URL}/orders/${order.id}`, {
       recip: order.recip + order.remained,
       remained: 0,
     });
-    return updatedOrder.data; // <-- return updated order
+
+    // ✅ پیام موفقیت
+    Swal.fire({
+      icon: "success",
+      title: "پرداخت موفقانه انجام شد",
+      text: "باقی‌مانده پول این سفارش پرداخت گردید.",
+      timer: 2000,
+      showConfirmButton: false,
+    });
+
+    return updatedOrder.data;
   } catch (err) {
     console.error("Error paying remaining:", err);
+
+    // ❌ پیام خطا
+    Swal.fire({
+      icon: "error",
+      title: "پرداخت ناموفق بود",
+      text: "در هنگام پرداخت خطایی رخ داد. لطفاً دوباره تلاش کنید.",
+    });
+
     throw err;
   }
 };
-
 export const getOrdersByDateRange = async (
   startDate,
   endDate,
