@@ -99,7 +99,6 @@ const Orders = () => {
     digitalId:0,
     recip: null,
     remained: 0,
-    digitalId: "", // ✅ Added digitalId field
   });
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -199,35 +198,46 @@ const Orders = () => {
     try {
       let savedOrder;
 
-      if (editMode) {
-        // Update existing order
-        savedOrder = await updateOrder(editingOrderId, recordToSubmit);
-        Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
-      } else {
-        // Create new order
-        savedOrder = await createOrder(recordToSubmit);
-        Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success");
-      }
-
-      fetchOrders(currentPage);
-
-      // If shouldPrint is true, open the bill for printing
-      if (shouldPrint) {
-        setSavedOrderForPrint(savedOrder);
-        setSelectedOrder(savedOrder);
-        setIsBillOpen(true);
-        setAutoPrint(true);
-      } else {
-        resetForm();
-      }
-    } catch (err) {
-      Swal.fire(
-        "خطا",
-        editMode ? "ویرایش بیل موفقیت‌آمیز نبود" : "ثبت بیل موفقیت‌آمیز نبود",
-        "error"
-      );
+    if (editMode) {
+      savedOrder = await updateOrder(editingOrderId, recordToSubmit);
+      Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
+    } else {
+      savedOrder = await createOrder(recordToSubmit);
+      Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success");
     }
-  };
+
+    fetchOrders(currentPage);
+
+    if (shouldPrint) {
+      // Use the original record data for printing since it has all the details
+      const orderForPrint = {
+        ...savedOrder, // This gives us the ID and any other backend data
+        customer: {
+          name: record.customer.name,
+          phone_number: record.customer.phone_number,
+        },
+        digital: recordToSubmit.digital,
+        offset: recordToSubmit.offset,
+        total_money_digital: record.total_money_digital,
+        total_money_offset: record.total_money_offset,
+        total: record.total,
+        recip: record.recip,
+        remained: record.remained,
+        digitalId: record.digitalId,
+        createdAt: new Date().toISOString(), // Add current date for the bill
+      };
+
+      setSavedOrderForPrint(orderForPrint);
+      setSelectedOrder(orderForPrint);
+      setIsBillOpen(true);
+      setAutoPrint(false);
+    } else {
+      resetForm();
+    }
+  } catch (err) {
+    // ... error handling ...
+  }
+};
 
   const resetForm = () => {
     setRecord({
@@ -243,7 +253,7 @@ const Orders = () => {
       total: 0,
       recip: 0,
       remained: 0,
-      digitalId: "", // ✅ Reset digitalId field
+      digitalId: null, // ✅ Reset digitalId field
     });
     setEditMode(false);
     setEditingOrderId(null);
@@ -276,7 +286,7 @@ const Orders = () => {
       digitalId: order.digitalId || 0,
       recip: order.recip || 0,
       remained: order.remained || 0,
-      digitalId: order.digitalId || "", // ✅ Include digitalId when editing
+      digitalId: order.digitalId || null, // ✅ Include digitalId when editing
     });
     setEditMode(true);
     setEditingOrderId(order.id);
