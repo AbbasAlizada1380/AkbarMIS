@@ -121,7 +121,10 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
           }}
         >
           {/* Header */}
-          <div className="bg-gradient-to-l from-cyan-800 to-cyan-600 text-white p-4 text-center border-b-4 border-cyan-900">
+          <div
+            id="header-area"
+            className="bg-gradient-to-l from-cyan-800 to-cyan-600 text-white p-4 text-center"
+          >
             <h1 className="text-xl font-bold mb-1">چاپخانه اکبر</h1>
             <p className="text-sm opacity-90">Akbar Printing House</p>
             <div className="flex justify-between items-center mt-2 text-xs">
@@ -325,12 +328,14 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-800 text-white p-3 text-center text-xs">
+          <div
+            id="footer-area"
+            className="bg-gray-800 text-white p-3 text-center text-xs"
+          >
             <div className="flex items-center justify-center gap-2 mb-1">
               <FaPhone className="text-cyan-300" />
-              <span>تماس: ۰۷۹۳ـــ۰۰۰۰۰۰</span>
+              <span>تماس: ۰۷۸۹۳۸۴۷۰۰ - ۰۷۹۹۳۰۶۴۳۷ - ۰۷۴۸۸۵۲۵۶۹</span>
             </div>
-            <p className="text-cyan-200">تشکر از اعتماد شما به چاپخانه اکبر!</p>
           </div>
         </div>
       </div>
@@ -374,9 +379,15 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
             width: 148mm !important;
             height: 210mm !important;
             margin: 0;
-            padding: 0;
+            padding: 20px;
             box-shadow: none !important;
             border-radius: 0 !important;
+          }
+          #header-area {
+            background-color: oklch(45% 0.085 224.283);
+          }
+          #footer-area {
+            background-color: oklch(27.8% 0.033 256.848);
           }
           .print-hidden {
             display: none !important;
