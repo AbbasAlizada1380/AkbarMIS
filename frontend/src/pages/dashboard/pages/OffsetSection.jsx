@@ -76,37 +76,43 @@ const OffsetSection = ({ record, setRecord }) => {
       <div className="space-y-4">
         {record.offset.map((o, i) => (
           <div key={i} className="flex items-center">
-            {/* Item Header */}
-
             {/* Input Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
-              {Object.keys(o).map((key) => (
-                <div key={key} className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">
-                    {getFieldLabel(key)}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={key === "name" ? "text" : "number"}
-                      placeholder={getFieldPlaceholder(key)}
-                      value={o[key]}
-                      onChange={(e) => updateOffset(i, key, e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200 bg-gray-200 text-gray-800 hover:border-gray-400"
-                    />
+              {Object.keys(o)
+                .filter(
+                  (key) =>
+                    !["id", "createdAt", "updatedAt", "orderId"].includes(key)
+                )
+                .map((key) => (
+                  <div key={key} className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {getFieldLabel(key)}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={key === "name" ? "text" : "number"}
+                        placeholder={getFieldPlaceholder(key)}
+                        value={o[key]}
+                        onChange={(e) => updateOffset(i, key, e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200 bg-gray-200 text-gray-800 hover:border-gray-400"
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
-            <div className="flex items-center px-5  relative  border-gray-100">
+
+            {/* Delete Button */}
+            <div className="flex items-center px-5 relative border-gray-100">
               <button
                 onClick={() => deleteOffset(i)}
-                className="absolute cursor-pointer -bottom-5 "
+                className="absolute cursor-pointer -bottom-5"
               >
                 <FaTrash className="text-red-500 cursor-pointer" size={20} />
               </button>
             </div>
           </div>
         ))}
+
         <div className="flex items-center justify-between">
           <button
             onClick={addOffset}

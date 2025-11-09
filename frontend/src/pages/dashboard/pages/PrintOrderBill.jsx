@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import moment from "moment-jalaali";
 import { FaPhone, FaPrint, FaTimes } from "react-icons/fa";
 
-const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
-  const [isReadyToPrint, setIsReadyToPrint] = useState(false);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
-
-  // Helper functions to check if items are filled - more relaxed version
+const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
+  const hasAutoPrintedRef = useRef(false);
+  const printTimeoutRef = useRef(null);
+  console.log(autoPrint);
+  
+  // Helper functions to check if items are filled
   const isDigitalItemFilled = (item) => {
     return (
       item?.name?.trim() !== "" ||
@@ -23,50 +24,41 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
 
   const formatCurrency = (num) => {
     const number = Number(num || 0);
-    return number.toLocaleString("fa-AF") + " افغانی";
+    return number + " افغانی";
   };
 
   const handlePrint = () => {
     window.print();
   };
 
-  // Data loading effect
+  // Auto print functionality
   useEffect(() => {
-    if (isOpen && order) {
-      setIsDataLoaded(true);
-    } else {
-      setIsDataLoaded(false);
-    }
-  }, [isOpen, order]);
+    if (autoPrint && isOpen && order && !hasAutoPrintedRef.current) {
+      // Set flag to prevent multiple auto-prints
+      hasAutoPrintedRef.current = true;
 
-  // Auto print when component is ready
-  useEffect(() => {
-    if (autoPrint && isOpen && order) {
-      // Set a small delay to ensure the component is fully rendered with data
-      const timer = setTimeout(() => {
-        setIsReadyToPrint(true);
-      }, 500);
-
-      return () => {
-        clearTimeout(timer);
-        setIsReadyToPrint(false);
-      };
+      // Delay print to ensure DOM is fully rendered
+      printTimeoutRef.current = setTimeout(() => {
+        window.print();
+      }, 800);
     }
+
+    return () => {
+      if (printTimeoutRef.current) {
+        clearTimeout(printTimeoutRef.current);
+      }
+    };
   }, [autoPrint, isOpen, order]);
 
-  // Trigger print when ready
+  // Reset auto-print flag when modal closes
   useEffect(() => {
-    if (isReadyToPrint && autoPrint) {
-      const printTimer = setTimeout(() => {
-        window.print();
-      }, 300);
-
-      return () => clearTimeout(printTimer);
+    if (!isOpen) {
+      hasAutoPrintedRef.current = false;
     }
-  }, [isReadyToPrint, autoPrint]);
+  }, [isOpen]);
 
-  // ✅ Move conditional return to AFTER all hooks
-  if (!isOpen || !order || !isDataLoaded) {
+  // Early return if not ready to render
+  if (!isOpen || !order) {
     return null;
   }
 
@@ -74,7 +66,7 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
   const filledDigital = (order.digital || []).filter(isDigitalItemFilled);
   const filledOffset = (order.offset || []).filter(isOffsetItemFilled);
 
-  // Recalculate totals based on filled items only
+  // Calculate totals
   const total_money_digital = filledDigital.reduce(
     (sum, d) => sum + Number(d.money || 0),
     0
@@ -86,27 +78,22 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
   const total = total_money_digital + total_money_offset;
   const remained = total - (order.recip || 0);
 
-  const today = moment().format("jYYYY/jMM/jDD");
+  // Generate bill number and timestamp
   const billNumber = order.id
     ? `${order.id}`
     : `${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
   const now = new Date();
-  // Format date and time together
-const dateTime = now.toLocaleString("fa-AF", {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-  hour12: true, // ✅ Use 12-hour format
-});
-
-
-  // Debug: Check if we have data
-  console.log("PrintOrderBill - Order data:", order);
-  console.log("PrintOrderBill - Filled digital:", filledDigital);
-  console.log("PrintOrderBill - Filled offset:", filledOffset);
+  const dateTime = now
+    .toLocaleString("fa-AF", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
 
   return (
     <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4 print:bg-transparent print:p-0">
@@ -335,14 +322,14 @@ const dateTime = now.toLocaleString("fa-AF", {
           >
             <div className="flex items-center justify-center gap-2 mb-1">
               <FaPhone className="text-cyan-300" />
-              <span>تماس: ۰۷۸۹۳۸۴۷۰۰ - ۰۷۹۹۳۰۶۴۳۷ - ۰۷۴۸۸۵۲۵۶۹</span>
+              <span> تماس: 0789384700 - 0799306437 - 0748852569</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Action Buttons - Only show if not auto printing */}
-      {!autoPrint && (
+      {/* Action Buttons - Hide during auto-print */}
+      {
         <div className="absolute bottom-6 left-6 flex gap-3 print:hidden">
           <button
             onClick={onClose}
@@ -357,7 +344,7 @@ const dateTime = now.toLocaleString("fa-AF", {
             <FaPrint size={14} /> چاپ فاکتور
           </button>
         </div>
-      )}
+      }
 
       {/* Print Styles */}
       <style jsx global>{`
@@ -408,4 +395,4 @@ const dateTime = now.toLocaleString("fa-AF", {
   );
 };
 
-export default PrintOrderBill;
+export default PrintBillOrder;

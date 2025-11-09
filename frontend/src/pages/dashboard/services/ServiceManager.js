@@ -47,10 +47,7 @@ export const createOrder = async (orderData) => {
       showAlert("خطا", "نام مشتری نمی‌تواند خالی باشد", "error");
       return;
     }
-    console.log(orderData);
-
     const res = await axios.post(`${BASE_URL}/orders`, orderData);
-    showAlert("موفق", "بیل با موفقیت ثبت شد ✅", "success");
     return res.data;
   } catch (error) {
     console.error(error);

@@ -96,7 +96,7 @@ const Orders = () => {
     total_money_digital: 0,
     total_money_offset: 0,
     total: 0,
-    digitalId:0,
+    digitalId: 0,
     recip: null,
     remained: 0,
   });
@@ -178,10 +178,8 @@ const Orders = () => {
   };
 
   const saveRecord = async (shouldPrint = false) => {
-   
     // Prepare the record by filtering out empty items
     const recordToSubmit = prepareRecordForSubmit(record);
-
     // Check if there are any filled items
     const hasDigitalItems = recordToSubmit.digital.length > 0;
     const hasOffsetItems = recordToSubmit.offset.length > 0;
@@ -198,46 +196,44 @@ const Orders = () => {
     try {
       let savedOrder;
 
-    if (editMode) {
-      savedOrder = await updateOrder(editingOrderId, recordToSubmit);
-      Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
-    } else {
-      savedOrder = await createOrder(recordToSubmit);
-      Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success");
+      if (editMode) {
+        savedOrder = await updateOrder(editingOrderId, recordToSubmit);
+        Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
+      } else {
+        savedOrder = await createOrder(recordToSubmit);
+      }
+      fetchOrders(currentPage);
+
+      if (shouldPrint) {
+        // Use the original record data for printing since it has all the details
+        const orderForPrint = {
+          ...savedOrder, // This gives us the ID and any other backend data
+          customer: {
+            name: record.customer.name,
+            phone_number: record.customer.phone_number,
+          },
+          digital: recordToSubmit.digital,
+          offset: recordToSubmit.offset,
+          total_money_digital: record.total_money_digital,
+          total_money_offset: record.total_money_offset,
+          total: record.total,
+          recip: record.recip,
+          remained: record.remained,
+          digitalId: record.digitalId,
+          createdAt: new Date().toISOString(), // Add current date for the bill
+        };
+
+        setSavedOrderForPrint(orderForPrint);
+        setSelectedOrder(orderForPrint);
+        setIsBillOpen(true);
+        setAutoPrint(true);
+      } else {
+        resetForm();
+      }
+    } catch (err) {
+      // ... error handling ...
     }
-
-    fetchOrders(currentPage);
-
-    if (shouldPrint) {
-      // Use the original record data for printing since it has all the details
-      const orderForPrint = {
-        ...savedOrder, // This gives us the ID and any other backend data
-        customer: {
-          name: record.customer.name,
-          phone_number: record.customer.phone_number,
-        },
-        digital: recordToSubmit.digital,
-        offset: recordToSubmit.offset,
-        total_money_digital: record.total_money_digital,
-        total_money_offset: record.total_money_offset,
-        total: record.total,
-        recip: record.recip,
-        remained: record.remained,
-        digitalId: record.digitalId,
-        createdAt: new Date().toISOString(), // Add current date for the bill
-      };
-
-      setSavedOrderForPrint(orderForPrint);
-      setSelectedOrder(orderForPrint);
-      setIsBillOpen(true);
-      setAutoPrint(false);
-    } else {
-      resetForm();
-    }
-  } catch (err) {
-    // ... error handling ...
-  }
-};
+  };
 
   const resetForm = () => {
     setRecord({
@@ -296,18 +292,6 @@ const Orders = () => {
   };
 
   const handleDeleteOrder = async (orderId) => {
-    const result = await Swal.fire({
-      title: "آیا مطمئن هستید؟",
-      text: "این عمل قابل بازگشت نیست!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "بله، حذف شود!",
-      cancelButtonText: "لغو",
-    });
-
-    if (result.isConfirmed) {
       try {
         await deleteOrder(orderId);
         Swal.fire("حذف شد!", "سفارش با موفقیت حذف شد.", "success");
@@ -315,7 +299,7 @@ const Orders = () => {
       } catch (err) {
         Swal.fire("خطا!", "حذف سفارش موفقیت‌آمیز نبود.", "error");
       }
-    }
+    
   };
 
   const handleViewBill = (order) => {
@@ -686,12 +670,14 @@ const Orders = () => {
                         >
                           <FaPrint className="text-blue-600" size={20} />
                         </button>
-                      {currentUser.role=="admin"&&  <button
-                          onClick={() => handleDeleteOrder(order.id)}
-                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
-                        >
-                          <FaTimes className="text-red-600" size={20} />
-                        </button>}
+                        {currentUser.role == "admin" && (
+                          <button
+                            onClick={() => handleDeleteOrder(order.id)}
+                            className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
+                          >
+                            <FaTimes className="text-red-600" size={20} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -716,7 +702,6 @@ const Orders = () => {
       {/* Print Bill Modal */}
       {isBillOpen && (
         <div className="relative ">
-          {" "}
           <PrintOrderBill
             isOpen={isBillOpen}
             onClose={handleCloseBill}

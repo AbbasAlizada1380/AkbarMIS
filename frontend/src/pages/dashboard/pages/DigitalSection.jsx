@@ -106,34 +106,41 @@ const DigitalSection = ({ record, setRecord }) => {
             record.digital.map((d, i) => (
               <div key={i} className="flex items-center gap-x-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-x-4">
-                  {Object.keys(d).map((key) => (
-                    <div
-                      key={key}
-                      className={`space-y-2 ${
-                        key === "name" ? "lg:col-span-2" : ""
-                      }`}
-                    >
-                      <label className="block text-sm font-medium text-gray-700">
-                        {getFieldLabel(key)}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type={key === "name" ? "text" : "number"}
-                          value={d[key] ?? ""}
-                          onChange={(e) =>
-                            updateDigital(i, key, e.target.value)
-                          }
-                          placeholder={getFieldPlaceholder(key)}
-                          className={`w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200 ${
-                            key === "area"
-                              ? "bg-gray-200 text-gray-600 cursor-not-allowed"
-                              : "bg-gray-200 text-gray-800 hover:border-gray-400"
-                          }`}
-                          disabled={key === "area"}
-                        />
+                  {Object.keys(d)
+                    .filter(
+                      (key) =>
+                        !["id", "createdAt", "updatedAt", "orderId"].includes(
+                          key
+                        )
+                    )
+                    .map((key) => (
+                      <div
+                        key={key}
+                        className={`space-y-2 ${
+                          key === "name" ? "lg:col-span-2" : ""
+                        }`}
+                      >
+                        <label className="block text-sm font-medium text-gray-700">
+                          {getFieldLabel(key)}
+                        </label>
+                        <div className="relative">
+                          <input
+                            type={key === "name" ? "text" : "number"}
+                            value={d[key] ?? ""}
+                            onChange={(e) =>
+                              updateDigital(i, key, e.target.value)
+                            }
+                            placeholder={getFieldPlaceholder(key)}
+                            className={`w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200 ${
+                              key === "area"
+                                ? "bg-gray-200 text-gray-600 cursor-not-allowed"
+                                : "bg-gray-200 text-gray-800 hover:border-gray-400"
+                            }`}
+                            disabled={key === "area"}
+                          />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
                 <div className="flex h-12 w-12 relative">
                   <button
