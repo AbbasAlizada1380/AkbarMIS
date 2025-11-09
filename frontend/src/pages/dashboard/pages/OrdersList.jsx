@@ -187,8 +187,11 @@ const OrdersList = () => {
               ).map((order, index) => (
                 <tr
                   key={order.id || index}
-                  className={`hover:bg-gray-50  "bg-blue-100"
-                   `}
+                  className={`hover:bg-gray-50 ${
+                    order.isDelivered && order.remained == 0
+                      ? "bg-gray-200"
+                      : "bg-white"
+                  }`}
                 >
                   <td className="border border-gray-300 px-4 py-2">
                     {order.id || "#"}

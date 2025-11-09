@@ -110,7 +110,7 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
   return (
     <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4 print:bg-transparent print:p-0">
       {/* A5 Container */}
-      <div className="">
+      <div className="px-5">
         <div
           id="printable-area"
           className="bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col print:shadow-none print:rounded-none"
