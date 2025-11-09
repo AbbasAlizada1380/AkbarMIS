@@ -4,11 +4,7 @@ import Swal from "sweetalert2";
 
 import BillSummary from "./BillSummary.jsx";
 import PrintOrderBill from "./PrintOrderBill.jsx";
-import {
-
-  FaCheck,
-  FaUndo,
-} from "react-icons/fa";
+import { FaCheck, FaUndo } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
 import Pagination from "../pagination/Pagination.jsx";
 import {
@@ -32,6 +28,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import SearchBar from "../searching/SearchBar.jsx";
+import { useSelector } from "react-redux";
 const OrdersList = () => {
   const [record, setRecord] = useState({
     customer: { name: "", phone_number: "" },
@@ -43,6 +40,7 @@ const OrdersList = () => {
     recip: 0,
     remained: 0,
   });
+  const { currentUser } = useSelector((state) => state.user);
   const searchRef = useRef();
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -94,80 +92,6 @@ const OrdersList = () => {
     }));
   }, [record?.digital, record?.offset, record?.recip]);
 
-  const handleCustomerChange = (e) => {
-    const { name, value } = e.target;
-    setRecord({
-      ...record,
-      customer: { ...record.customer, [name]: value },
-    });
-  };
-
-  const handleRecipChange = (e) => {
-    const value = Number(e.target.value || 0);
-    setRecord({
-      ...record,
-      recip: value,
-    });
-  };
-
-  const saveRecord = async () => {
-    try {
-      if (editMode) {
-        // Update existing order
-        await updateOrder(editingOrderId, record);
-      } else {
-        // Create new order
-        await createOrder(record);
-      }
-
-      fetchOrders(currentPage);
-      resetForm();
-    } catch (err) {
-      Swal.fire(
-        "خطا",
-        editMode ? "ویرایش بیل موفقیت‌آمیز نبود" : "ثبت بیل موفقیت‌آمیز نبود",
-        "error"
-      );
-    }
-  };
-
-  const resetForm = () => {
-    setRecord({
-      customer: { name: "", phone_number: "" },
-      digital: [],
-      offset: [],
-      total_money_digital: 0,
-      total_money_offset: 0,
-      total: 0,
-      recip: 0,
-      remained: 0,
-    });
-    setEditMode(false);
-    setEditingOrderId(null);
-    setActiveSection("digital");
-  };
-
-  const handleEditOrder = (order) => {
-    // Transform the order data to match the record structure
-    setRecord({
-      customer: {
-        name: order.customer?.name || order.name || "",
-        phone_number: order.customer?.phone_number || order.phone_number || "",
-      },
-      digital: order.digital || [],
-      offset: order.offset || [],
-      total_money_digital: order.total_money_digital || 0,
-      total_money_offset: order.total_money_offset || 0,
-      total: order.total || 0,
-      recip: order.recip || 0,
-      remained: order.remained || 0,
-    });
-    setEditMode(true);
-    setEditingOrderId(order.id);
-
-    // Scroll to the top of the form
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
   const handleViewBill = (order) => {
     setSelectedOrder(order);
     setIsBillOpen(true);
@@ -176,6 +100,27 @@ const OrdersList = () => {
   const handleCloseBill = () => {
     setIsBillOpen(false);
     setSelectedOrder(null);
+  };
+  const handlePayRemaining = async (order) => {
+    try {
+      const updated = await payRemaining(order);
+
+      // Only update state if we got a valid response
+      if (updated && updated.id) {
+        // Update main orders
+        setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
+
+        // Update search result if it exists
+        setSearchResult((prev) =>
+          prev?.length
+            ? prev.map((o) => (o.id === order.id ? updated : o))
+            : prev
+        );
+      }
+      // If user canceled (updated is null), do nothing
+    } catch (err) {
+      console.error("Error paying remaining:", err);
+    }
   };
 
   return (
@@ -243,8 +188,10 @@ const OrdersList = () => {
                 <tr
                   key={order.id || index}
                   className={`hover:bg-gray-50 ${
-                    order.isDelivered && order.remained === 0 && "bg-blue-100"
-                  } `}
+                    order.isDelivered && order.remained == 0
+                      ? "bg-gray-200"
+                      : "bg-white"
+                  }`}
                 >
                   <td className="border border-gray-300 px-4 py-2">
                     {order.id || "#"}
@@ -300,7 +247,7 @@ const OrdersList = () => {
                             console.error("Error toggling delivery:", err);
                           }
                         }}
-                        className="p-2 rounded bg-gray-200 hover:bg-gray-300"
+                        className="p-2 cursor-pointer rounded bg-gray-200 hover:bg-gray-300"
                       >
                         <div className="w-full flex items-center gap-x-2 justify-center text-cyan-800">
                           {order.isDelivered ? <FaCheck /> : <ImCross />}
@@ -309,28 +256,8 @@ const OrdersList = () => {
 
                       {/* Pay remaining */}
                       <button
-                        onClick={async () => {
-                          try {
-                            const updated = await payRemaining(order);
-
-                            // Update main orders
-                            setOrders((prev) =>
-                              prev.map((o) => (o.id === order.id ? updated : o))
-                            );
-
-                            // Update search result if it exists
-                            setSearchResult((prev) =>
-                              prev?.length
-                                ? prev.map((o) =>
-                                    o.id === order.id ? updated : o
-                                  )
-                                : prev
-                            );
-                          } catch (err) {
-                            console.error("Error paying remaining:", err);
-                          }
-                        }}
-                        className="px-3 py-1 bg-cyan-800 text-white rounded hover:bg-blue-600"
+                        onClick={() => handlePayRemaining(order)}
+                        className="px-3 cursor-pointer py-1 bg-cyan-800 text-white rounded hover:bg-blue-600"
                       >
                         تصفیه باقیداری
                       </button>
@@ -345,37 +272,24 @@ const OrdersList = () => {
                       >
                         <FaEye className="text-cyan-800" size={20} />
                       </button>
-                      {/* <button
-                        onClick={async () => {
-                          try {
-                            const updated = await handleEditOrder(order);
-                            setOrders((prev) =>
-                              prev.map((o) => (o.id === order.id ? updated : o))
-                            );
-                          } catch (err) {
-                            console.error("Error editing order:", err);
-                          }
-                        }}
-                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-white px-4 py-2 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl w-full"
-                      >
-                        <FaEdit className="text-sm" />
-                        ویرایش
-                      </button> */}
-                      <button
-                        onClick={async () => {
-                          try {
-                            await deleteOrder(order.id);
-                            setOrders((prev) =>
-                              prev.filter((o) => o.id !== order.id)
-                            );
-                          } catch (err) {
-                            console.error("Error deleting order:", err);
-                          }
-                        }}
-                        className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
-                      >
-                        <FaTimes className="text-red-600" size={20} />
-                      </button>
+
+                      {currentUser.role == "admin" && (
+                        <button
+                          onClick={async () => {
+                            try {
+                              await deleteOrder(order.id);
+                              setOrders((prev) =>
+                                prev.filter((o) => o.id !== order.id)
+                              );
+                            } catch (err) {
+                              console.error("Error deleting order:", err);
+                            }
+                          }}
+                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
+                        >
+                          <FaTimes className="text-red-600" size={20} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

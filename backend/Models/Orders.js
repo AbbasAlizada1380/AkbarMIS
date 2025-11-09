@@ -34,6 +34,10 @@ export const Order = sequelize.define(
       type: DataTypes.BOOLEAN,
       defaultValue: 0,
     },
+    digitalId: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
   },
   {
     tableName: "orders",

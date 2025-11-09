@@ -1,42 +1,74 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import moment from "moment-jalaali";
 import { FaPhone, FaPrint, FaTimes } from "react-icons/fa";
 
 const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
-  if (!isOpen || !order) return null;
+  const [isReadyToPrint, setIsReadyToPrint] = useState(false);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
-  // Helper functions to check if items are filled
+  // Helper functions to check if items are filled - more relaxed version
   const isDigitalItemFilled = (item) => {
     return (
-      item.name?.trim() !== "" ||
-      item.quantity > 0 ||
-      item.height > 0 ||
-      item.weight > 0 ||
-      item.price_per_unit > 0 ||
-      item.money > 0
+      item?.name?.trim() !== "" ||
+      (item?.quantity > 0 && (item?.price_per_unit > 0 || item?.money > 0))
     );
   };
 
   const isOffsetItemFilled = (item) => {
     return (
-      item.name?.trim() !== "" ||
-      item.quantity > 0 ||
-      item.price_per_unit > 0 ||
-      item.money > 0
+      item?.name?.trim() !== "" ||
+      (item?.quantity > 0 && (item?.price_per_unit > 0 || item?.money > 0))
     );
   };
 
-  // Auto print when component mounts if autoPrint is true
+  const formatCurrency = (num) => {
+    const number = Number(num || 0);
+    return number.toLocaleString("fa-AF") + " افغانی";
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  // Data loading effect
   useEffect(() => {
-    if (autoPrint && isOpen) {
-      // Small delay to ensure the component is fully rendered
+    if (isOpen && order) {
+      setIsDataLoaded(true);
+    } else {
+      setIsDataLoaded(false);
+    }
+  }, [isOpen, order]);
+
+  // Auto print when component is ready
+  useEffect(() => {
+    if (autoPrint && isOpen && order) {
+      // Set a small delay to ensure the component is fully rendered with data
       const timer = setTimeout(() => {
-        window.print();
+        setIsReadyToPrint(true);
       }, 500);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        setIsReadyToPrint(false);
+      };
     }
-  }, [autoPrint, isOpen]);
+  }, [autoPrint, isOpen, order]);
+
+  // Trigger print when ready
+  useEffect(() => {
+    if (isReadyToPrint && autoPrint) {
+      const printTimer = setTimeout(() => {
+        window.print();
+      }, 300);
+
+      return () => clearTimeout(printTimer);
+    }
+  }, [isReadyToPrint, autoPrint]);
+
+  // ✅ Move conditional return to AFTER all hooks
+  if (!isOpen || !order || !isDataLoaded) {
+    return null;
+  }
 
   // Filter out empty items
   const filledDigital = (order.digital || []).filter(isDigitalItemFilled);
@@ -59,19 +91,26 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
     ? `ORD-${order.id}`
     : `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
-  const formatCurrency = (num) => {
-    const number = Number(num || 0);
-    return number.toLocaleString("fa-AF") + " افغانی";
-  };
+  const now = new Date();
+  // Format date and time together
+  const dateTime = now.toLocaleString("fa-AF", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
 
-  const handlePrint = () => {
-    window.print();
-  };
+  // Debug: Check if we have data
+  console.log("PrintOrderBill - Order data:", order);
+  console.log("PrintOrderBill - Filled digital:", filledDigital);
+  console.log("PrintOrderBill - Filled offset:", filledOffset);
 
   return (
     <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4 print:bg-transparent print:p-0">
       {/* A5 Container */}
-      <div className="">
+      <div className="px-5">
         <div
           id="printable-area"
           className="bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col print:shadow-none print:rounded-none"
@@ -87,7 +126,7 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
             <p className="text-sm opacity-90">Akbar Printing House</p>
             <div className="flex justify-between items-center mt-2 text-xs">
               <span>شماره: {billNumber}</span>
-              <span>تاریخ: {today}</span>
+              <span>تاریخ: {dateTime}</span>
             </div>
           </div>
 
@@ -114,8 +153,9 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
             {filledDigital.length > 0 && (
               <div className="mb-4">
                 <h3 className="text-sm font-bold text-green-700 mb-2 bg-green-50 p-2 rounded border-r-4 border-green-500">
-                  چاپ دیجیتال
+                  چاپ دیجیتال : {order.digitalId || "—"}
                 </h3>
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs border border-gray-300">
                     <thead className="bg-gray-100">
@@ -243,45 +283,43 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
           </div>
 
           {/* Bill Summary */}
-          <div className="border-t border-gray-300 bg-gray-50 p-3">
-            <div className="space-y-1 text-xs">
-              {filledDigital.length > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">مجموع چاپ دیجیتال:</span>
-                  <span className="font-semibold">
-                    {formatCurrency(total_money_digital)}
+          <div className="flex border-t border-gray-300 bg-gray-50">
+            {/* Left Half — Totals Section */}
+            <div className="w-1/2 border-l border-gray-300 p-4">
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between font-bold border-t border-gray-300 pt-1 text-sm">
+                  <span>مجموع کل:</span>
+                  <span className="text-cyan-800">{formatCurrency(total)}</span>
+                </div>
+                <div className="flex justify-between font-bold border-t border-gray-300 pt-1 text-sm">
+                  <span>
+                    <strong>دریافتی :</strong>
+                  </span>
+                  <span className="text-green-600">
+                    {formatCurrency(order.recip || 0)}
                   </span>
                 </div>
-              )}
-              {filledOffset.length > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-600">مجموع چاپ افست:</span>
-                  <span className="font-semibold">
-                    {formatCurrency(total_money_offset)}
+                <div className="flex justify-between font-bold border-t border-gray-300 pt-1">
+                  <span
+                    className={remained > 0 ? "text-red-600" : "text-green-600"}
+                  >
+                    باقیمانده:
+                  </span>
+                  <span
+                    className={remained > 0 ? "text-red-600" : "text-green-600"}
+                  >
+                    {formatCurrency(remained)}
                   </span>
                 </div>
-              )}
-              <div className="flex justify-between font-bold border-t border-gray-300 pt-1 text-sm">
-                <span>مجموع کل:</span>
-                <span className="text-cyan-800">{formatCurrency(total)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>مقدار پرداختی:</span>
-                <span className="text-green-600">
-                  {formatCurrency(order.recip || 0)}
-                </span>
-              </div>
-              <div className="flex justify-between font-bold border-t border-gray-300 pt-1">
-                <span
-                  className={remained > 0 ? "text-red-600" : "text-green-600"}
-                >
-                  باقیمانده:
-                </span>
-                <span
-                  className={remained > 0 ? "text-red-600" : "text-green-600"}
-                >
-                  {formatCurrency(remained)}
-                </span>
+            </div>
+
+            {/* Right Half — Signature and Stamp Section */}
+            <div className="w-1/2 flex flex-col items-center justify-center p-4 text-center">
+              <div className="w-full border border-dashed border-gray-400 h-28 flex flex-col items-center justify-center">
+                <p className="text-gray-600 text-sm font-semibold">
+                  محل امضاء و مُهر
+                </p>
               </div>
             </div>
           </div>
@@ -297,21 +335,6 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
         </div>
       </div>
 
-      {/* Action Buttons - Only Close and Print */}
-      <div className="absolute bottom-6 left-6 flex gap-3 print:hidden">
-        <button
-          onClick={onClose}
-          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors"
-        >
-          <FaTimes size={14} /> بستن
-        </button>
-        <button
-          onClick={handlePrint}
-          className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors"
-        >
-          <FaPrint size={14} /> چاپ فاکتور
-        </button>
-      </div>
       {/* Action Buttons - Only show if not auto printing */}
       {!autoPrint && (
         <div className="absolute bottom-6 left-6 flex gap-3 print:hidden">
@@ -329,6 +352,7 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
           </button>
         </div>
       )}
+
       {/* Print Styles */}
       <style jsx global>{`
         @media print {

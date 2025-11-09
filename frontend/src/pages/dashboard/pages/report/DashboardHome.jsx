@@ -18,7 +18,8 @@ import {
 } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
+import OrderDownload from "./OrderDownload.jsx";
+import { useSelector } from "react-redux";
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const DashboardHome = () => {
@@ -30,7 +31,7 @@ const DashboardHome = () => {
   const [endDate, setEndDate] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
   const [reportType, setReportType] = useState("all"); // all, delivered, pending
-
+  const { currentUser } = useSelector((state) => state.user);
   const fetchReportData = async (start = null, end = null, type = "all") => {
     try {
       setLoading(true);
@@ -54,50 +55,6 @@ const DashboardHome = () => {
   useEffect(() => {
     fetchReportData();
   }, []);
-
-  const handleFilter = () => {
-    fetchReportData(startDate, endDate, reportType);
-  };
-
-  const handleResetFilter = () => {
-    setStartDate(null);
-    setEndDate(null);
-    setReportType("all");
-    fetchReportData();
-  };
-
-  const downloadReport = async (format) => {
-    try {
-      const params = {
-        format,
-        download: true,
-      };
-      if (startDate) params.startDate = startDate.toISOString().split("T")[0];
-      if (endDate) params.endDate = endDate.toISOString().split("T")[0];
-      if (reportType !== "all") params.type = reportType;
-
-      const response = await axios.get(`${BASE_URL}/report`, {
-        params,
-        responseType: "blob",
-      });
-
-      // Create download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-
-      const timestamp = new Date().toISOString().split("T")[0];
-      const filename = `report-${timestamp}.${format}`;
-      link.setAttribute("download", filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Error downloading report:", err);
-      alert("خطا در دانلود گزارش");
-    }
-  };
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("fa-AF").format(amount) + " افغانی";
@@ -160,6 +117,7 @@ const DashboardHome = () => {
       icon: FaMoneyBillWave,
       color: "bg-cyan-800",
       description: "کل پول از سفارشات",
+      role: "admin",
     },
     {
       title: "مجموع پول دریافتی",
@@ -167,6 +125,7 @@ const DashboardHome = () => {
       icon: FaWallet,
       color: "bg-emerald-600",
       description: "کل مبالغ دریافت شده",
+      role: "admin",
     },
     {
       title: "مجموع پول باقیمانده",
@@ -174,6 +133,7 @@ const DashboardHome = () => {
       icon: FaMoneyBillWave,
       color: "bg-cyan-800",
       description: "کل مبلغ باقیمانده از سفارشات",
+      role: "admin",
     },
     {
       title: "تعداد کل سفارشات",
@@ -181,6 +141,7 @@ const DashboardHome = () => {
       icon: FaBoxOpen,
       color: "bg-purple-600",
       description: "تعداد کل سفارشات",
+      role: "reception",
     },
     {
       title: "وضعیت سفارشات",
@@ -191,6 +152,7 @@ const DashboardHome = () => {
       isCombined: true,
       delivered: deliveredOrdersCount,
       pending: notDeliveredOrdersCount,
+      role: "reception",
     },
 
     {
@@ -199,156 +161,32 @@ const DashboardHome = () => {
       icon: FaChartLine,
       color: "bg-cyan-600",
       description: "نرخ تحویل سفارشات",
+      role: "reception",
     },
   ];
-
+  // Filter cards based on role
+  const visibleCards = statsCards.filter(
+    (card) => card.role === currentUser.role || currentUser.role === "admin"
+  );
   return (
     <div className="min-h-screen p-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              داشبورد مدیریت
-            </h1>
-            <p className="text-gray-600">
-              خلاصه وضعیت سفارشات و مالی چاپخانه اکبر
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {lastUpdated && (
-              <div className="text-sm text-gray-500 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-xl border border-gray-200">
-                آخرین بروزرسانی: {lastUpdated.toLocaleTimeString("fa-AF")}
-              </div>
-            )}
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-xl font-medium transition-all duration-200"
-            >
-              <FaFilter />
-              فیلترها
-            </button>
-            <button
-              onClick={() => fetchReportData()}
-              className="flex items-center gap-2 bg-white text-cyan-600 hover:bg-cyan-50 border border-cyan-200 px-4 py-2 rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
-            >
-              <FaSync className={`${loading ? "animate-spin" : ""}`} />
-              بروزرسانی
-            </button>
-          </div>
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            داشبورد مدیریت
+          </h1>
+          <p className="text-gray-600">
+            خلاصه وضعیت سفارشات و مالی چاپخانه اکبر
+          </p>
         </div>
 
-        {/* Filter Section */}
-        {showFilters && (
-          <div className="mt-6 bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-              {/* Start Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  از تاریخ
-                </label>
-                <DatePicker
-                  selected={startDate}
-                  onChange={setStartDate}
-                  selectsStart
-                  startDate={startDate}
-                  endDate={endDate}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  placeholderText="انتخاب تاریخ شروع"
-                />
-              </div>
-
-              {/* End Date */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  تا تاریخ
-                </label>
-                <DatePicker
-                  selected={endDate}
-                  onChange={setEndDate}
-                  selectsEnd
-                  startDate={startDate}
-                  endDate={endDate}
-                  minDate={startDate}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                  placeholderText="انتخاب تاریخ پایان"
-                />
-              </div>
-
-              {/* Report Type */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  نوع گزارش
-                </label>
-                <select
-                  value={reportType}
-                  onChange={(e) => setReportType(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
-                >
-                  <option value="all">همه سفارشات</option>
-                  <option value="delivered">فقط تحویل شده</option>
-                  <option value="pending">فقط در انتظار</option>
-                </select>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-end gap-2">
-                <button
-                  onClick={handleFilter}
-                  className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                >
-                  اعمال فیلتر
-                </button>
-                <button
-                  onClick={handleResetFilter}
-                  className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                >
-                  بازنشانی
-                </button>
-              </div>
-            </div>
-
-            {/* Download Buttons */}
-            <div className="flex gap-4">
-              <button
-                onClick={() => downloadReport("pdf")}
-                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                <FaFilePdf />
-                دانلود PDF
-              </button>
-              <button
-                onClick={() => downloadReport("excel")}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                <FaFileExcel />
-                دانلود Excel
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Time Range Info */}
-        {timeRange.hasTimeRange && (
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 inline-flex items-center gap-2">
-            <FaCalendarAlt className="text-blue-500" />
-            <span className="text-blue-700 font-medium">
-              {timeRange.startDate && timeRange.endDate
-                ? `داده‌ها از ${new Date(
-                    timeRange.startDate
-                  ).toLocaleDateString("fa-AF")} تا ${new Date(
-                    timeRange.endDate
-                  ).toLocaleDateString("fa-AF")}`
-                : "کل داده‌های تاریخی"}
-            </span>
-          </div>
-        )}
+       
       </div>
-
+      {currentUser.role == "admin" && <OrderDownload />}
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {statsCards.map((card, index) => (
+        {visibleCards.map((card, index) => (
           <div
             key={index}
             className="bg-white rounded-md shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 overflow-hidden"
@@ -359,6 +197,7 @@ const DashboardHome = () => {
                 <span className="text-sm font-semibold">{card.title}</span>
               </div>
             </div>
+
             <div className="p-6">
               {card.isCombined ? (
                 <div className="space-y-4">
@@ -370,6 +209,7 @@ const DashboardHome = () => {
                       </div>
                       <div className="text-green-600 text-xs">تحویل شده</div>
                     </div>
+
                     <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-200">
                       <FaClock className="text-orange-600 text-xl mx-auto mb-1" />
                       <div className="text-lg font-bold text-orange-700">
@@ -391,11 +231,10 @@ const DashboardHome = () => {
           </div>
         ))}
       </div>
-
       {/* Detailed Financial Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Financial Summary */}
-        <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+        {currentUser.role=="admin"&&<div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-cyan-800 rounded-xl">
               <FaMoneyBillWave className="text-white text-xl" />
@@ -432,7 +271,7 @@ const DashboardHome = () => {
               </span>
             </div>
           </div>
-        </div>
+        </div>}
 
         {/* Delivery Status */}
         <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">

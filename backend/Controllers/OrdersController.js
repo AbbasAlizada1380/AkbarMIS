@@ -1,6 +1,47 @@
 import { Order, Digital, Offset } from "../Models/Orders.js";
 import { Sequelize, Op } from "sequelize";
 
+
+// ✅ Get ALL orders within a specific date range (no pagination)
+export const getOrdersByDateRange = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    // Build date range condition only if provided
+    const dateCondition =
+      startDate && endDate
+        ? {
+            createdAt: {
+              [Op.between]: [
+                new Date(`${startDate}T00:00:00`),
+                new Date(`${endDate}T23:59:59`),
+              ],
+            },
+          }
+        : {};
+
+    // Fetch ALL filtered orders (latest first)
+    const orders = await Order.findAll({
+      where: dateCondition,
+      include: [
+        { model: Digital, as: "digital" },
+        { model: Offset, as: "offset" },
+      ],
+      order: [["id", "DESC"]],
+    });
+
+    // Return all results
+    res.json({
+      totalOrders: orders.length,
+      dateRange: { startDate, endDate },
+      orders,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error fetching orders by date", error });
+  }
+};
+
 export const searchOrders = async (req, res) => {
   try {
     const { q } = req.query;
@@ -59,16 +100,18 @@ export const createOrder = async (req, res) => {
       recip,
       remained,
       total,
+      digitalId, // <-- take from request body
       total_money_digital,
       total_money_offset,
     } = req.body;
 
-    // Create order with customer JSON
+    // Create order with customer JSON and digitalId
     const order = await Order.create({
       customer,
       recip,
       remained,
       total,
+      digitalId, // <-- added here
       total_money_digital,
       total_money_Offset: total_money_offset,
       isDelivered: false,
@@ -107,6 +150,7 @@ export const createOrder = async (req, res) => {
   }
 };
 
+
 // Get all orders
 export const getOrders = async (req, res) => {
   try {
@@ -115,15 +159,16 @@ export const getOrders = async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const offset = (page - 1) * limit;
 
-    // Fetch paginated orders
+    // Fetch paginated orders in reverse (latest first)
     const { count, rows: orders } = await Order.findAndCountAll({
       include: [
         { model: Digital, as: "digital" },
         { model: Offset, as: "offset" },
       ],
-      distinct: true, // <--- important
+      distinct: true, // Ensures correct count when including relations
       limit,
       offset,
+      order: [["id", "DESC"]], // ✅ Sort by id descending (latest first)
     });
 
     // Return paginated response
@@ -139,6 +184,7 @@ export const getOrders = async (req, res) => {
     res.status(500).json({ message: "Error fetching orders", error });
   }
 };
+
 
 // Get single order by ID
 export const getOrderById = async (req, res) => {
@@ -167,6 +213,7 @@ export const updateOrder = async (req, res) => {
       recip,
       remained,
       total,
+      digitalId,
       total_money_digital,
       total_money_offset,
       digital,
@@ -182,6 +229,7 @@ export const updateOrder = async (req, res) => {
       recip: recip ?? order.recip,
       remained: remained ?? order.remained,
       total: total ?? order.total,
+      digitalId: digitalId ?? order.digitalId,
       total_money_digital: total_money_digital ?? order.total_money_digital,
       total_money_Offset: total_money_offset ?? order.total_money_Offset,
     });

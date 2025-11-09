@@ -26,9 +26,12 @@ import {
   FaLayerGroup,
   FaEdit,
   FaTimes,
+  FaIdCard,
 } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 const Orders = () => {
+  const { currentUser } = useSelector((state) => state.user);
   // Default empty digital item
   const defaultDigitalItem = {
     name: "",
@@ -93,6 +96,7 @@ const Orders = () => {
     total_money_digital: 0,
     total_money_offset: 0,
     total: 0,
+    digitalId:0,
     recip: null,
     remained: 0,
   });
@@ -105,7 +109,8 @@ const Orders = () => {
   const [activeSection, setActiveSection] = useState("digital");
   const [editMode, setEditMode] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState(null);
-  const [autoPrint, setAutoPrint] = useState(false); // Add this state
+  const [autoPrint, setAutoPrint] = useState(false);
+  const [savedOrderForPrint, setSavedOrderForPrint] = useState(null);
 
   const fetchOrders = async (page = 1) => {
     const data = await getOrders(page, 20);
@@ -155,6 +160,15 @@ const Orders = () => {
     });
   };
 
+  // ✅ Handle digitalId change
+  const handleDigitalIdChange = (e) => {
+    const value = e.target.value;
+    setRecord({
+      ...record,
+      digitalId: value,
+    });
+  };
+
   const handleRecipChange = (e) => {
     const value = Number(e.target.value || 0);
     setRecord({
@@ -163,13 +177,8 @@ const Orders = () => {
     });
   };
 
-  const saveRecord = async () => {
-    // Validate customer information
-    if (!record.customer.name.trim()) {
-      Swal.fire("خطا", "لطفاً نام مشتری را وارد کنید", "error");
-      return;
-    }
-
+  const saveRecord = async (shouldPrint = false) => {
+   
     // Prepare the record by filtering out empty items
     const recordToSubmit = prepareRecordForSubmit(record);
 
@@ -187,26 +196,48 @@ const Orders = () => {
     }
 
     try {
-      if (editMode) {
-        // Update existing order
-        await updateOrder(editingOrderId, recordToSubmit);
-        Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
-      } else {
-        // Create new order
-        await createOrder(recordToSubmit);
-        Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success");
-      }
+      let savedOrder;
 
-      fetchOrders(currentPage);
-      resetForm();
-    } catch (err) {
-      Swal.fire(
-        "خطا",
-        editMode ? "ویرایش بیل موفقیت‌آمیز نبود" : "ثبت بیل موفقیت‌آمیز نبود",
-        "error"
-      );
+    if (editMode) {
+      savedOrder = await updateOrder(editingOrderId, recordToSubmit);
+      Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
+    } else {
+      savedOrder = await createOrder(recordToSubmit);
+      Swal.fire("موفق", "بیل با موفقیت ثبت شد", "success");
     }
-  };
+
+    fetchOrders(currentPage);
+
+    if (shouldPrint) {
+      // Use the original record data for printing since it has all the details
+      const orderForPrint = {
+        ...savedOrder, // This gives us the ID and any other backend data
+        customer: {
+          name: record.customer.name,
+          phone_number: record.customer.phone_number,
+        },
+        digital: recordToSubmit.digital,
+        offset: recordToSubmit.offset,
+        total_money_digital: record.total_money_digital,
+        total_money_offset: record.total_money_offset,
+        total: record.total,
+        recip: record.recip,
+        remained: record.remained,
+        digitalId: record.digitalId,
+        createdAt: new Date().toISOString(), // Add current date for the bill
+      };
+
+      setSavedOrderForPrint(orderForPrint);
+      setSelectedOrder(orderForPrint);
+      setIsBillOpen(true);
+      setAutoPrint(false);
+    } else {
+      resetForm();
+    }
+  } catch (err) {
+    // ... error handling ...
+  }
+};
 
   const resetForm = () => {
     setRecord({
@@ -222,10 +253,12 @@ const Orders = () => {
       total: 0,
       recip: 0,
       remained: 0,
+      digitalId: null, // ✅ Reset digitalId field
     });
     setEditMode(false);
     setEditingOrderId(null);
     setActiveSection("digital");
+    setSavedOrderForPrint(null);
   };
 
   const handleEditOrder = (order) => {
@@ -250,8 +283,10 @@ const Orders = () => {
       total_money_digital: order.total_money_digital || 0,
       total_money_offset: order.total_money_offset || 0,
       total: order.total || 0,
+      digitalId: order.digitalId || 0,
       recip: order.recip || 0,
       remained: order.remained || 0,
+      digitalId: order.digitalId || null, // ✅ Include digitalId when editing
     });
     setEditMode(true);
     setEditingOrderId(order.id);
@@ -286,16 +321,28 @@ const Orders = () => {
   const handleViewBill = (order) => {
     setSelectedOrder(order);
     setIsBillOpen(true);
-    setAutoPrint(shouldPrint);
+    setAutoPrint(false);
   };
 
   const handleCloseBill = () => {
     setIsBillOpen(false);
     setSelectedOrder(null);
-    setAutoPrint(false); // Reset autoPrint when closing
+    setAutoPrint(false);
+    // If we were printing a saved order, reset the form
+    if (savedOrderForPrint) {
+      resetForm();
+    }
   };
+
   const handlePrintBill = (order) => {
-    handleViewBill(order, true);
+    setSelectedOrder(order);
+    setIsBillOpen(true);
+    setAutoPrint(true);
+  };
+
+  // Save and Print function
+  const handleSaveAndPrint = () => {
+    saveRecord(true); // Pass true to indicate we want to print after saving
   };
 
   // Count filled items for display
@@ -345,7 +392,7 @@ const Orders = () => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
               <label className="block text-base font-medium text-gray-700 mb-2">
                 نام مشتری
@@ -377,6 +424,24 @@ const Orders = () => {
                   className="w-full px-4 py-3 pl-12 border bg-gray-200 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200  text-gray-800 placeholder-gray-400"
                 />
                 <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+
+            {/* ✅ Added digitalId input field */}
+            <div className="space-y-2">
+              <label className="block text-base font-medium text-gray-700 mb-2">
+                شناسه دیجیتال
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  name="digitalId"
+                  placeholder="شناسه دیجیتال را وارد کنید"
+                  value={record.digitalId || ""}
+                  onChange={handleDigitalIdChange}
+                  className="w-full px-4 py-3 pl-12 border bg-gray-200 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200  text-gray-800 placeholder-gray-400"
+                />
+                <FaIdCard className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
             </div>
           </div>
@@ -431,13 +496,6 @@ const Orders = () => {
 
       {/* Payment Section */}
       <div className="bg-white rounded-lg shadow-xl p-6 border border-gray-100">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <FaMoneyBillWave className="text-cyan-800 text-xl" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-800">اطلاعات پرداخت</h2>
-        </div>
-
         <div className="flex   gap-x-6">
           <div className="flex items-center gap-x-4 flex-1">
             <div className="space-y-2 w-full">
@@ -473,9 +531,10 @@ const Orders = () => {
             </div>
           </div>
 
-          <div className="flex items-end  ">
+          <div className="flex items-end  gap-2">
+            {/* Save Button */}
             <button
-              onClick={saveRecord}
+              onClick={() => saveRecord(false)}
               disabled={
                 !record.customer.name.trim() ||
                 (filledDigitalCount === 0 && filledOffsetCount === 0)
@@ -494,6 +553,24 @@ const Orders = () => {
               <FaSave className="text-lg" />
               {editMode ? "ویرایش اطلاعات" : "ذخیره اطلاعات"}
             </button>
+
+            {/* Save and Print Button */}
+            <button
+              onClick={handleSaveAndPrint}
+              disabled={
+                !record.customer.name.trim() ||
+                (filledDigitalCount === 0 && filledOffsetCount === 0)
+              }
+              className={`flex items-center gap-x-2 text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                !record.customer.name.trim() ||
+                (filledDigitalCount === 0 && filledOffsetCount === 0)
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+            >
+              <FaPrint className="text-lg" />
+              ذخیره و چاپ
+            </button>
           </div>
 
           <div className="flex items-end ">
@@ -503,15 +580,6 @@ const Orders = () => {
             >
               <FaEye className="text-lg" />
               مشاهده بیل
-            </button>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={() => handlePrintBill(record)} // Direct print
-              className="flex items-center gap-x-2 text-sm bg-blue-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <IoIosPrint className="text-lg" />
-              چاپ بیل
             </button>
           </div>
         </div>
@@ -529,8 +597,6 @@ const Orders = () => {
         )}
       </div>
 
-      {/* Action Buttons */}
-
       {/* Orders Table */}
       <div className="bg-white rounded-lg shadow-lg border border-gray-100">
         <div className="flex items-center gap-3  p-6">
@@ -545,6 +611,9 @@ const Orders = () => {
             <thead className="bg-cyan-800 text-gray-50">
               <tr>
                 <th className="border border-gray-100 px-4 py-2"> شماره بیل</th>
+                <th className="border border-gray-100 px-4 py-2">
+                  شناسه دیجیتال
+                </th>
                 <th className="border border-gray-100 px-4 py-2">نام مشتری</th>
                 <th className="border border-gray-100 px-4 py-2">شماره تماس</th>
                 <th className="border border-gray-100 px-4 py-2">مجموع</th>
@@ -566,6 +635,9 @@ const Orders = () => {
                   >
                     <td className="border border-gray-300 px-4 py-2">
                       {order.id}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2 font-mono">
+                      {order.digitalId || "-"}
                     </td>
                     <td className="border border-gray-300 px-4 py-2">
                       {order.customer?.name || order.name}
@@ -609,18 +681,24 @@ const Orders = () => {
                           <FaEdit className="text-green-600" size={20} />
                         </button>
                         <button
+                          onClick={() => handlePrintBill(order)}
+                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
+                        >
+                          <FaPrint className="text-blue-600" size={20} />
+                        </button>
+                      {currentUser.role=="admin"&&  <button
                           onClick={() => handleDeleteOrder(order.id)}
                           className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
                         >
                           <FaTimes className="text-red-600" size={20} />
-                        </button>
+                        </button>}
                       </div>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="9" className="text-gray-500 py-4">
+                  <td colSpan="10" className="text-gray-500 py-4">
                     هیچ سفارشی وجود ندارد
                   </td>
                 </tr>

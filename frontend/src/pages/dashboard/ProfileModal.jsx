@@ -1,77 +1,89 @@
 import React, { useState, useEffect } from "react";
 import { FaTimes, FaSpinner } from "react-icons/fa";
-import { useDispatch } from "react-redux";
+import axios from "axios";
 import { toast } from "react-toastify";
-import { updateUser } from "../../state/userSlice/userSlice";
+
+const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const ProfileModal = ({ isOpen, onClose, currentUser }) => {
-  // State management
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState({
+    fullname: "",
+    email: "",
+    newPassword: "",
+    rePassword: "",
+    oldPassword: "",
+  });
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
 
-  // Initialize form data
+  // Initialize form when modal opens
   useEffect(() => {
     if (currentUser) {
       setFormData({
-        first_name: currentUser.first_name || "",
-        last_name: currentUser.last_name || "",
+        fullname: currentUser.fullname || "",
         email: currentUser.email || "",
+        newPassword: "",
+        rePassword: "",
+        oldPassword: "",
       });
     }
   }, [currentUser, isOpen]);
 
-  // Form input handler
+  // Handle form changes
   const handleChange = (e) => {
-    if (e.target.id !== "email") {
-      setFormData({ ...formData, [e.target.id]: e.target.value });
-    }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  // Form submission handler
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check for changes
-    const changes = Object.entries(formData).reduce((acc, [key, value]) => {
-      if (key !== "email" && currentUser[key] !== value) {
-        acc[key] = value;
-      }
-      return acc;
-    }, {});
+    const { fullname, email, newPassword, rePassword, oldPassword } = formData;
 
-    if (Object.keys(changes).length === 0) {
-      toast.info("هیچ تغییری اعمال نشده است", {
+    // Validate password match
+    if (newPassword && newPassword !== rePassword) {
+      toast.error("رمزهای جدید مطابقت ندارند", {
         className: "toastify-persian",
         position: "top-left",
-        autoClose: 3000,
+      });
+      return;
+    }
+
+    if (!oldPassword) {
+      toast.error("رمز فعلی الزامی است", {
+        className: "toastify-persian",
+        position: "top-left",
       });
       return;
     }
 
     setLoading(true);
-
     try {
-      await dispatch(
-        updateUser({
-          id: currentUser.id,
-          userData: { ...changes, email: currentUser.email },
-        })
-      ).unwrap();
+      const response = await axios.patch(
+        `${BASE_URL}/users/${currentUser.id}`,
+        {
+          fullname,
+          email,
+          currentPassword: oldPassword,
+          newPassword,
+        },
+        { withCredentials: true }
+      );
 
-      toast.success("پروفایل با موفقیت به‌روزرسانی شد", {
+      toast.success(response.data.message || "پروفایل با موفقیت ویرایش شد", {
         className: "toastify-persian",
         position: "top-left",
-        autoClose: 3000,
       });
+
       setTimeout(onClose, 1500);
-    } catch (err) {
-      toast.error("خطا در به‌روزرسانی پروفایل", {
-        className: "toastify-persian",
-        position: "top-left",
-        autoClose: 4000,
-      });
-      console.error("Update error:", err);
+    } catch (error) {
+      console.error("Update error:", error);
+      toast.error(
+        error.response?.data?.message || "خطا در به‌روزرسانی پروفایل",
+        {
+          className: "toastify-persian",
+          position: "top-left",
+        }
+      );
     } finally {
       setLoading(false);
     }
@@ -104,36 +116,16 @@ const ProfileModal = ({ isOpen, onClose, currentUser }) => {
           ویرایش پروفایل
         </h2>
 
-        <div className="flex justify-center mb-4 relative">
-          {currentUser?.profile_picture ? (
-            <div className="relative">
-              <img
-                src={currentUser.profile_picture}
-                alt="تصویر پروفایل"
-                className="w-24 h-24 rounded-full object-cover border-4 border-white/30
-                         shadow-lg hover:border-white/50 transition-all duration-300"
-              />
-              <div className="absolute inset-0 rounded-full border-2 border-white/20 backdrop-blur-sm" />
-            </div>
-          ) : (
-            <div
-              className="w-24 h-24 rounded-full bg-gray-300/80 backdrop-blur-sm flex items-center
-                         justify-center text-gray-500 text-4xl border-4 border-white/30 shadow-lg"
-            >
-              {currentUser?.first_name?.[0]?.toUpperCase() || "U"}
-            </div>
-          )}
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Full Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700/90 mb-1">
-              نام
+              نام کامل
             </label>
             <input
               type="text"
-              id="first_name"
-              value={formData.first_name}
+              id="fullname"
+              value={formData.fullname}
               onChange={handleChange}
               className="w-full px-3 py-2 border border-gray-200/80 rounded-lg shadow-sm
                        focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50
@@ -142,22 +134,7 @@ const ProfileModal = ({ isOpen, onClose, currentUser }) => {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700/90 mb-1">
-              نام خانوادگی
-            </label>
-            <input
-              type="text"
-              id="last_name"
-              value={formData.last_name}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-200/80 rounded-lg shadow-sm
-                       focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50
-                       bg-white/70 backdrop-blur-sm transition-all duration-200"
-              placeholder="نام خانوادگی خود را وارد کنید"
-            />
-          </div>
-
+          {/* Email */}
           <div>
             <label className="block text-sm font-medium text-gray-700/90 mb-1">
               ایمیل
@@ -166,17 +143,64 @@ const ProfileModal = ({ isOpen, onClose, currentUser }) => {
               type="email"
               id="email"
               value={formData.email}
-              readOnly
-              disabled
-              className="w-full px-3 py-2 border border-gray-200/60 rounded-lg shadow-sm
-                       bg-gray-100/50 backdrop-blur-sm text-gray-500/90 cursor-not-allowed
-                       focus:ring-0 focus:border-gray-200/60"
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-200/80 rounded-lg shadow-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50
+                       bg-white/70 backdrop-blur-sm transition-all duration-200"
+              placeholder="ایمیل خود را وارد کنید"
             />
-            <p className="text-xs text-gray-500/80 mt-1">
-              امکان تغییر ایمیل وجود ندارد
-            </p>
           </div>
 
+          {/* New Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700/90 mb-1">
+              رمز جدید
+            </label>
+            <input
+              type="password"
+              id="newPassword"
+              value={formData.newPassword}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-200/80 rounded-lg shadow-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50
+                       bg-white/70 backdrop-blur-sm transition-all duration-200"
+            />
+          </div>
+
+          {/* Re-enter Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700/90 mb-1">
+              تکرار رمز جدید
+            </label>
+            <input
+              type="password"
+              id="rePassword"
+              value={formData.rePassword}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-200/80 rounded-lg shadow-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50
+                       bg-white/70 backdrop-blur-sm transition-all duration-200"
+            />
+          </div>
+
+          {/* Old Password */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700/90 mb-1">
+              رمز فعلی
+            </label>
+            <input
+              type="password"
+              id="oldPassword"
+              value={formData.oldPassword}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-200/80 rounded-lg shadow-sm
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/50
+                       bg-white/70 backdrop-blur-sm transition-all duration-200"
+              placeholder="رمز فعلی را وارد کنید"
+            />
+          </div>
+
+          {/* Buttons */}
           <div className="flex justify-start gap-3 pt-4 border-t border-white/30 mt-4">
             <button
               type="submit"

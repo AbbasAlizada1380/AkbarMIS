@@ -72,7 +72,7 @@ const BillSummary = ({ record }) => {
       </div>
 
       {/* Detailed Breakdown */}
-      <div className="bg-white rounded-md p-4 border border-gray-200">
+      {/* <div className="bg-white rounded-md p-4 border border-gray-200">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
           جزئیات محاسبات
         </h3>
@@ -96,7 +96,7 @@ const BillSummary = ({ record }) => {
             </span>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Status Indicator */}
       <div className="mt-4 flex items-center justify-between bg-gray-50 rounded-lg p-3">
