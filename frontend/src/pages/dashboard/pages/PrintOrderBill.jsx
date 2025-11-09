@@ -88,19 +88,20 @@ const PrintOrderBill = ({ isOpen, onClose, order, autoPrint }) => {
 
   const today = moment().format("jYYYY/jMM/jDD");
   const billNumber = order.id
-    ? `ORD-${order.id}`
-    : `ORD-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+    ? `${order.id}`
+    : `${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
   const now = new Date();
   // Format date and time together
-  const dateTime = now.toLocaleString("fa-AF", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
+const dateTime = now.toLocaleString("fa-AF", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: true, // ✅ Use 12-hour format
+});
+
 
   // Debug: Check if we have data
   console.log("PrintOrderBill - Order data:", order);
