@@ -447,7 +447,7 @@ const DashboardHome = () => {
             {/* Delivery Progress */}
             <div>
               <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>نرخ تحویل</span>
+                <span>فیصدی تحویل</span>
                 <span>{deliveryRate.toFixed(1)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3">
