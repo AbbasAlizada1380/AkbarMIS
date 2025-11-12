@@ -103,17 +103,21 @@ const DigitalSection = ({ record, setRecord }) => {
       <div className="space-y-4">
         <div className="space-y-4">
           {record && record.digital && record.digital.length > 0 ? (
-            record.digital.map((d, i) => (
-              <div key={i} className="flex items-center gap-x-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-x-4">
-                  {Object.keys(d)
-                    .filter(
-                      (key) =>
-                        !["id", "createdAt", "updatedAt", "orderId"].includes(
-                          key
-                        )
-                    )
-                    .map((key) => (
+            record.digital.map((d, i) => {
+              const fieldOrder = [
+                "name",
+                "quantity",
+                "height",
+                "weight",
+                "area",
+                "price_per_unit",
+                "money",
+              ];
+
+              return (
+                <div key={i} className="flex items-center gap-x-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-8 gap-x-4">
+                    {fieldOrder.map((key) => (
                       <div
                         key={key}
                         className={`space-y-2 ${
@@ -125,7 +129,7 @@ const DigitalSection = ({ record, setRecord }) => {
                         </label>
                         <div className="relative">
                           <input
-                            type={key === "name" ? "text" : "number"}
+                            type={["name"].includes(key) ? "text" : "number"}
                             value={d[key] ?? ""}
                             onChange={(e) =>
                               updateDigital(i, key, e.target.value)
@@ -141,17 +145,19 @@ const DigitalSection = ({ record, setRecord }) => {
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  <div className="flex h-12 w-12 relative">
+                    <button
+                      onClick={() => deleteDigital(i)}
+                      className="text-red-500 absolute cursor-pointer bottom-0"
+                    >
+                      <FaTrash size={20} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex h-12 w-12 relative">
-                  <button
-                    onClick={() => deleteDigital(i)}
-                    className="text-red-500 absolute cursor-pointer bottom-0"
-                  >
-                    <FaTrash size={20} />
-                  </button>
-                </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <p className="text-gray-500 text-center py-4">
               هیچ مورد چاپ دیجیتال اضافه نشده است.
