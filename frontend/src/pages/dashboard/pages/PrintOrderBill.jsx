@@ -249,16 +249,20 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
                     </tbody>
                   </table>
                 </div>
-                <div className="flex items-center py-1 justify-between">
-                  <div className="flex justify-end mt-1 text-xs font-bold text-green-700">
-                    مجموع چاپ دیجیتال: {formatCurrency(total_money_digital)}
-                  </div>
-                  <div className="flex justify-end mt-1 text-xs font-bold text-purple-700">
-                    مجموع چاپ افست: {formatCurrency(total_money_offset)}
-                  </div>
-                </div>
               </div>
             )}
+            <div className="flex items-center py-1 justify-between">
+              {filledDigital.length > 0 && (
+                <div className="flex justify-end mt-1 text-xs font-bold text-green-700">
+                  مجموع چاپ دیجیتال: {formatCurrency(total_money_digital)}
+                </div>
+              )}
+              {filledOffset.length > 0 && (
+                <div className="flex justify-end mt-1 text-xs font-bold text-purple-700">
+                  مجموع چاپ افست: {formatCurrency(total_money_offset)}
+                </div>
+              )}
+            </div>
 
             {/* No Items Message */}
             {filledDigital.length === 0 && filledOffset.length === 0 && (
