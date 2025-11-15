@@ -46,39 +46,44 @@ export const searchOrders = async (req, res) => {
   try {
     const { q } = req.query;
 
-    // Validation
     if (!q || q.trim() === "") {
       return res.status(400).json({ message: "عبارت جستجو الزامی است" });
     }
 
-    const isId = !isNaN(q); // Check if query is numeric
+    const cleaned = q.trim();
 
-    // ✅ Build dynamic WHERE clause
+    // Treat as ID only if numeric AND short length (e.g. <= 6)
+    const isId = !isNaN(cleaned) && cleaned.length <= 6;
+
+    // Build WHERE clause
     let whereClause = {};
 
     if (isId) {
-      whereClause = { id: Number(q) };
+      whereClause = { id: Number(cleaned) };
     } else {
       whereClause = {
         [Op.or]: [
           Sequelize.where(Sequelize.json("customer.name"), {
-            [Op.like]: `%${q}%`,
+            [Op.like]: `%${cleaned}%`,
+          }),
+
+          Sequelize.where(Sequelize.json("customer.phone_number"), {
+            [Op.like]: `%${cleaned}%`,
           }),
         ],
       };
     }
 
-    // ✅ Query the database
     const orders = await Order.findAll({
       where: whereClause,
       include: [
         { model: Digital, as: "digital" },
         { model: Offset, as: "offset" },
+        // { model: Customer, as: "customer" },
       ],
       order: [["createdAt", "DESC"]],
     });
 
-    // ✅ If nothing found
     if (!orders.length) {
       return res.status(404).json({ message: "هیچ نتیجه‌ای یافت نشد" });
     }
@@ -89,6 +94,7 @@ export const searchOrders = async (req, res) => {
     res.status(500).json({ message: "خطا در جستجو", error: error.message });
   }
 };
+
 
 // Create a new order
 export const createOrder = async (req, res) => {
