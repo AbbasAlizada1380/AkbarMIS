@@ -292,14 +292,13 @@ const Orders = () => {
   };
 
   const handleDeleteOrder = async (orderId) => {
-      try {
-        await deleteOrder(orderId);
-        Swal.fire("حذف شد!", "سفارش با موفقیت حذف شد.", "success");
-        fetchOrders(currentPage);
-      } catch (err) {
-        Swal.fire("خطا!", "حذف سفارش موفقیت‌آمیز نبود.", "error");
-      }
-    
+    try {
+      await deleteOrder(orderId);
+      Swal.fire("حذف شد!", "سفارش با موفقیت حذف شد.", "success");
+      fetchOrders(currentPage);
+    } catch (err) {
+      Swal.fire("خطا!", "حذف سفارش موفقیت‌آمیز نبود.", "error");
+    }
   };
 
   const handleViewBill = (order) => {
@@ -335,36 +334,10 @@ const Orders = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 space-y-8">
-      {/* Header Section */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">
-          سیستم مدیریت سفارشات
-        </h1>
-        <p className="text-gray-600">مدیریت سفارش‌های مشتریان و خدمات چاپی</p>
-        {editMode && (
-          <div className="mt-4 p-4 bg-yellow-100 border border-yellow-400 rounded-xl">
-            <div className="flex items-center justify-center gap-2 text-yellow-800">
-              <FaEdit className="text-lg" />
-              <span className="font-semibold">
-                حالت ویرایش - در حال ویرایش سفارش #{editingOrderId}
-              </span>
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* Section Toggle Buttons */}
-      <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-        <div className="bg-white rounded-2xl  p-3  border-gray-200">
+      <div className="bg-white rounded-lg shadow-lg px-6 pb-6 border border-gray-100">
+        <div className="bg-white rounded-2xl   border-gray-200">
           <div className="flex items-center justify-between mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <FaUser className="text-cyan-500 text-xl" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                معلومات مشتری
-              </h2>
-            </div>
             {editMode && (
               <button
                 onClick={resetForm}

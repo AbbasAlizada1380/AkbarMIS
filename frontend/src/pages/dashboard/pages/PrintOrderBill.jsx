@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import moment from "moment-jalaali";
 import { FaPhone, FaPrint, FaTimes } from "react-icons/fa";
+import jalaali from "jalaali-js";
 
 const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
   const hasAutoPrintedRef = useRef(false);
@@ -83,18 +84,28 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
     ? `${order.id}`
     : `${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
-  const now = new Date();
-  const dateTime = now
-    .toLocaleString("fa-AF", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    })
-    .replace(/[۰-۹]/g, (d) => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+  function formatToJalali(dateString) {
+    const date = new Date(dateString);
 
+    // Convert to Jalali
+    const { jy, jm, jd } = jalaali.toJalaali(
+      date.getFullYear(),
+      date.getMonth() + 1,
+      date.getDate()
+    );
+
+    // Get time
+    let hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? "بعدازظهر" : "قبل‌ازظهر";
+    hours = hours % 12;
+    hours = hours === 0 ? 12 : hours; // convert 0 to 12
+
+    // Pad numbers
+    const pad = (n) => (n < 10 ? "0" + n : n);
+
+    return `${jy}/${pad(jm)}/${pad(jd)}, ${pad(hours)}:${pad(minutes)} ${ampm}`;
+  }
   return (
     <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4 print:bg-transparent print:p-0">
       {/* A5 Container */}
@@ -116,7 +127,7 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
             <h1 className="text-xl font-bold mb-1">چاپخانه اکبر</h1>
             <div className="flex justify-between items-center mt-2 text-xs">
               <span>شماره: {billNumber}</span>
-              <span>تاریخ: {dateTime}</span>
+              <span>تاریخ: {formatToJalali(order.createdAt)}</span>
             </div>
           </div>
 

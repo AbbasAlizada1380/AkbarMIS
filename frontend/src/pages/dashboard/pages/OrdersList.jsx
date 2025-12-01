@@ -189,7 +189,7 @@ const OrdersList = () => {
                   key={order.id || index}
                   className={`hover:bg-gray-50 ${
                     order.isDelivered && order.remained == 0
-                      ? "bg-gray-200"
+                      ? "bg-blue-100"
                       : "bg-white"
                   }`}
                 >

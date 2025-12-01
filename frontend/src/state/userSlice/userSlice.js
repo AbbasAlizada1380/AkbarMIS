@@ -1,9 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import CryptoJS from "crypto-js";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
+const ENCRYPT_SECRET = import.meta.env.VITE_TOKEN_SECRET || "default-secret";
 
-// ✅ Initial state
+// Initial state
 const initialState = {
   currentUser: null,
   accessToken: null,
@@ -12,7 +14,7 @@ const initialState = {
   loading: false,
 };
 
-// ✅ SIGN IN
+// SIGN IN
 export const signIn = createAsyncThunk(
   "user/signIn",
   async (credentials, { rejectWithValue }) => {
@@ -21,18 +23,25 @@ export const signIn = createAsyncThunk(
         `${BASE_URL}/users/login/`,
         credentials
       );
-      const { access, refresh, user } = response.data;
+
+      const { token, user } = response.data;
+
+      // Encrypt token before saving in Redux
+      const encryptedToken = CryptoJS.AES.encrypt(
+        token,
+        ENCRYPT_SECRET
+      ).toString();
 
       return {
-        accessToken: access,
-        refreshToken: refresh,
+        accessToken: encryptedToken,
         userData: user,
       };
     } catch (error) {
       const message =
         error.response?.data?.detail ||
         error.response?.data?.message ||
-        "Login failed";
+        "Login failed. Please try again.";
+
       return rejectWithValue(message);
     }
   }

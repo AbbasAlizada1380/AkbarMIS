@@ -78,27 +78,22 @@ const OffsetSection = ({ record, setRecord }) => {
           <div key={i} className="flex items-center">
             {/* Input Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
-              {Object.keys(o)
-                .filter(
-                  (key) =>
-                    !["id", "createdAt", "updatedAt", "orderId"].includes(key)
-                )
-                .map((key) => (
-                  <div key={key} className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      {getFieldLabel(key)}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type={key === "name" ? "text" : "number"}
-                        placeholder={getFieldPlaceholder(key)}
-                        value={o[key]}
-                        onChange={(e) => updateOffset(i, key, e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200 bg-gray-200 text-gray-800 hover:border-gray-400"
-                      />
-                    </div>
+              {["name", "quantity", "price_per_unit", "money"].map((key) => (
+                <div key={key} className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    {getFieldLabel(key)}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={key === "name" ? "text" : "number"}
+                      placeholder={getFieldPlaceholder(key)}
+                      value={o[key] ?? ""}
+                      onChange={(e) => updateOffset(i, key, e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200 bg-gray-200 text-gray-800 hover:border-gray-400"
+                    />
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
 
             {/* Delete Button */}

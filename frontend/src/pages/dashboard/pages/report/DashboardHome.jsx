@@ -111,30 +111,30 @@ const DashboardHome = () => {
     totalOrdersCount > 0 ? (deliveredOrdersCount / totalOrdersCount) * 100 : 0;
 
   const statsCards = [
-    {
-      title: "مجموع پول همه سفارشات",
-      value: formatCurrency(totalRemainedMoney + totalReceivedMoney),
-      icon: FaMoneyBillWave,
-      color: "bg-cyan-800",
-      description: "کل پول از سفارشات",
-      role: "admin",
-    },
-    {
-      title: "مجموع پول دریافتی",
-      value: formatCurrency(totalReceivedMoney),
-      icon: FaWallet,
-      color: "bg-emerald-600",
-      description: "کل مبالغ دریافت شده",
-      role: "admin",
-    },
-    {
-      title: "مجموع پول باقیمانده",
-      value: formatCurrency(totalRemainedMoney),
-      icon: FaMoneyBillWave,
-      color: "bg-cyan-800",
-      description: "کل مبلغ باقیمانده از سفارشات",
-      role: "admin",
-    },
+    // {
+    //   title: "مجموع پول همه سفارشات",
+    //   value: formatCurrency(totalRemainedMoney + totalReceivedMoney),
+    //   icon: FaMoneyBillWave,
+    //   color: "bg-cyan-800",
+    //   description: "کل پول از سفارشات",
+    //   role: "admin",
+    // },
+    // {
+    //   title: "مجموع پول دریافتی",
+    //   value: formatCurrency(totalReceivedMoney),
+    //   icon: FaWallet,
+    //   color: "bg-emerald-600",
+    //   description: "کل مبالغ دریافت شده",
+    //   role: "admin",
+    // },
+    // {
+    //   title: "مجموع پول باقیمانده",
+    //   value: formatCurrency(totalRemainedMoney),
+    //   icon: FaMoneyBillWave,
+    //   color: "bg-cyan-800",
+    //   description: "کل مبلغ باقیمانده از سفارشات",
+    //   role: "admin",
+    // },
     {
       title: "تعداد کل سفارشات",
       value: formatNumber(totalOrdersCount),
@@ -234,7 +234,7 @@ const DashboardHome = () => {
       {/* Detailed Financial Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Financial Summary */}
-        {currentUser.role=="admin"&&<div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+        {/* {currentUser.role=="admin"&&<div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-3 bg-cyan-800 rounded-xl">
               <FaMoneyBillWave className="text-white text-xl" />
@@ -271,7 +271,7 @@ const DashboardHome = () => {
               </span>
             </div>
           </div>
-        </div>}
+        </div>} */}
 
         {/* Delivery Status */}
         <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-100">

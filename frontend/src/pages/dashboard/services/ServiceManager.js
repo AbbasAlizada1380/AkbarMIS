@@ -120,45 +120,36 @@ export const deleteOrder = async (id) => {
 
 export const toggleDelivery = async (orderId, currentStatus) => {
   try {
-    // Send PATCH request to toggle the boolean
     const res = await axios.patch(`${BASE_URL}/orders/${orderId}`, {
       isDelivered: !currentStatus,
     });
 
-    Swal.fire("موفق", `وضعیت تحویل بیل نمبر${orderId} تغییر کرد ✅`, "success");
+    Swal.fire({
+      title: "موفق",
+      text: `وضعیت تحویل بیل نمبر ${orderId} تغییر کرد ✅`,
+      icon: "success",
+      timer: 1000, 
+      showConfirmButton: false,
+    });
+
     return res.data;
-    // Optionally, refresh your order list or update state
-    getOrders(); // if you have a fetch function
   } catch (error) {
     console.error(error);
-    Swal.fire("خطا", "تغییر وضعیت تحویل انجام نشد 😢", "error");
+
+    Swal.fire({
+      title: "خطا",
+      text: "تغییر وضعیت تحویل انجام نشد 😢",
+      icon: "error",
+      timer: 1000,
+      showConfirmButton: false,
+    });
   }
 };
 
 
+
 export const payRemaining = async (order) => {
   try {
-    // 🟡 مرحله تأیید قبل از پرداخت
-    const result = await Swal.fire({
-      title: "آیا مطمئن هستید؟",
-      text: "آیا می‌خواهید باقی‌مانده پول این سفارش را پرداخت کنید؟",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "بله، پرداخت شود",
-      cancelButtonText: "خیر، لغو",
-      reverseButtons: true,
-    });
-
-    if (!result.isConfirmed) {
-      Swal.fire({
-        icon: "info",
-        title: "پرداخت لغو شد",
-        text: "عملیات پرداخت انجام نگردید.",
-        timer: 2000,
-        showConfirmButton: false,
-      });
-      return;
-    }
 
     // ✅ اگر کاربر تأیید کرد، پرداخت را انجام بده
     const updatedOrder = await axios.patch(`${BASE_URL}/orders/${order.id}`, {

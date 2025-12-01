@@ -30,69 +30,6 @@ import {
   FaArrowDown,
   FaSync,
 } from "react-icons/fa";
-
-// Mock data - Replace with actual API calls
-const mockData = {
-  daily: {
-    orders: 15,
-    revenue: 125000,
-    delivered: 8,
-    pending: 7,
-    chartData: [
-      { name: "8AM", orders: 2, revenue: 15000 },
-      { name: "10AM", orders: 3, revenue: 25000 },
-      { name: "12PM", orders: 4, revenue: 35000 },
-      { name: "2PM", orders: 3, revenue: 28000 },
-      { name: "4PM", orders: 2, revenue: 15000 },
-      { name: "6PM", orders: 1, revenue: 7000 },
-    ],
-  },
-  weekly: {
-    orders: 89,
-    revenue: 745000,
-    delivered: 67,
-    pending: 22,
-    chartData: [
-      { name: "شنبه", orders: 12, revenue: 98000 },
-      { name: "یکشنبه", orders: 15, revenue: 125000 },
-      { name: "دوشنبه", orders: 14, revenue: 115000 },
-      { name: "سه شنبه", orders: 13, revenue: 105000 },
-      { name: "چهارشنبه", orders: 18, revenue: 155000 },
-      { name: "پنجشنبه", orders: 11, revenue: 95000 },
-      { name: "جمعه", orders: 6, revenue: 52000 },
-    ],
-  },
-  monthly: {
-    orders: 345,
-    revenue: 2850000,
-    delivered: 278,
-    pending: 67,
-    chartData: [
-      { name: "هفته 1", orders: 78, revenue: 645000 },
-      { name: "هفته 2", orders: 82, revenue: 685000 },
-      { name: "هفته 3", orders: 95, revenue: 785000 },
-      { name: "هفته 4", orders: 90, revenue: 735000 },
-    ],
-  },
-  paymentStatus: [
-    { name: "پرداخت کامل", value: 65, color: "#10b981" },
-    { name: "بیل باقیمانده", value: 25, color: "#f59e0b" },
-    { name: "پرداخت نشده", value: 10, color: "#ef4444" },
-  ],
-  serviceTypes: [
-    { name: "چاپ دیجیتال", value: 60, color: "#3b82f6" },
-    { name: "چاپ افست", value: 30, color: "#8b5cf6" },
-    { name: "سایر خدمات", value: 10, color: "#06b6d4" },
-  ],
-  topCustomers: [
-    { name: "شرکت الف", orders: 45, revenue: 450000 },
-    { name: "مؤسسه ب", orders: 32, revenue: 320000 },
-    { name: "فروشگاه ج", orders: 28, revenue: 280000 },
-    { name: "اداره د", orders: 25, revenue: 250000 },
-    { name: "مطبوعات ه", orders: 22, revenue: 220000 },
-  ],
-};
-
 const AnalyticsDashboard = () => {
   const [timeRange, setTimeRange] = useState("weekly");
   const [loading, setLoading] = useState(false);
@@ -187,7 +124,7 @@ const AnalyticsDashboard = () => {
             <p className="text-gray-600">آمار و تحلیل‌های جامع چاپخانه اکبر</p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4">          
             {/* Time Range Selector */}
             <div className="flex bg-white rounded-lg border border-gray-200 p-1">
               {["daily", "weekly", "monthly"].map((range) => (
