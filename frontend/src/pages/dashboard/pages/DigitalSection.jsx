@@ -85,7 +85,7 @@ const DigitalSection = ({ record, setRecord }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
             <div className="bg-blue-100 rounded-lg">
@@ -97,7 +97,7 @@ const DigitalSection = ({ record, setRecord }) => {
             <p className="text-gray-600 text-sm">مدیریت محصولات چاپ دیجیتال</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Items List */}
       <div className="space-y-4">

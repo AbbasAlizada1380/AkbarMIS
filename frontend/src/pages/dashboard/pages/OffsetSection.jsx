@@ -60,7 +60,7 @@ const OffsetSection = ({ record, setRecord }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
             <FaPrint className="text-blue-500 text-xl" />
@@ -70,7 +70,7 @@ const OffsetSection = ({ record, setRecord }) => {
             <p className="text-gray-600 text-sm">مدیریت محصولات چاپ افست</p>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Items List */}
       <div className="space-y-4">

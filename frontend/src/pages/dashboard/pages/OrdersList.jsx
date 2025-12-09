@@ -273,7 +273,7 @@ const OrdersList = () => {
                         <FaEye className="text-cyan-800" size={20} />
                       </button>
 
-                      {currentUser.role == "admin" && (
+                      {/* {currentUser.role == "admin" && (
                         <button
                           onClick={async () => {
                             try {
@@ -289,7 +289,7 @@ const OrdersList = () => {
                         >
                           <FaTimes className="text-red-600" size={20} />
                         </button>
-                      )}
+                      )} */}
                     </div>
                   </td>
                 </tr>
