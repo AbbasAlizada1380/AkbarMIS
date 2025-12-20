@@ -112,7 +112,7 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
       <div className="px-5">
         <div
           id="printable-area"
-          className="bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col print:shadow-none print:rounded-none"
+          className="bg-white shadow-2xl rounded-lg py-10 overflow-hidden  flex flex-col print:shadow-none print:rounded-none"
           style={{
             width: "148mm",
             height: "210mm",
@@ -122,29 +122,33 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
           {/* Header */}
           <div
             id="header-area"
-            className="bg-gradient-to-l from-cyan-800 to-cyan-600 text-white py-4 px-4 text-center"
+            className=" py-4 px-4 grid grid-cols-2 text-center"
           >
-            <h1 className="text-xl font-bold mb-1">چاپخانه اکبر</h1>
-            <div className="flex justify-between items-center mt-2 text-xs">
-              <span>شماره: {billNumber}</span>
-              <span>تاریخ: {formatToJalali(order.createdAt)}</span>
+            <div></div>
+            <div className="flex flex-col items-center  mt-2 text-base">
+              <span className="font-semibold">نمبر بل: {billNumber}</span>
+              <span className="font-medium">
+                تاریخ: {formatToJalali(order.createdAt)}
+              </span>
             </div>
           </div>
 
           {/* Customer Info */}
-          <div className="p-3 border-b border-gray-200">
+          <div className="px-3 border-gray-200">
             <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="">
-                <span className="font-semibold">نام: </span>{" "}
+              <div className="font-semibold text-[14px]">
+                <span className="font-semibold">اسم: </span>{" "}
                 {order.customer?.name || order.name || "—"}
               </div>
-              <div className=" text-center">
-                <span className="font-semibold">آی دی دیجیتال: </span>{" "}
-                {order.digitalId || "—"}
+              <div className=" text-center font-semibold text-[14px]">
+                <span className="font-semibold"> کد: </span>{" "}
+                <span className="">{order.digitalId || "—"}</span>
               </div>
-              <div className=" text-end">
+              <div className=" text-end font-semibold text-[14px]">
                 <span className="font-semibold">شماره تماس: </span>{" "}
-                {order.customer?.phone_number || order.phone_number || "—"}
+                <span className="text-[14px]">
+                  {order.customer?.phone_number || order.phone_number || "—"}
+                </span>
               </div>
             </div>
           </div>
@@ -156,29 +160,15 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
               <div className="mb-2 ">
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs border border-gray-300">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="border border-gray-300 p-1 text-center ">
-                          #
-                        </th>
-                        <th className="border border-gray-300 p-1 text-center">
-                          نام
-                        </th>
-                        <th className="border border-gray-300 p-1 text-center ">
-                          تعداد
-                        </th>
-                        <th className="border border-gray-300 p-1 text-center ">
-                          ارتفاع
-                        </th>
-                        <th className="border border-gray-300 p-1 text-center ">
-                          عرض
-                        </th>
-                        <th className="border border-gray-300 p-1 text-center ">
-                          قیمت فی واحد
-                        </th>
-                        <th className="border border-gray-300 p-1 text-center 0">
-                          مبلغ
-                        </th>
+                    <thead className="">
+                      <tr className="text-md font-semibold">
+                        <th className="p-1 text-center ">#</th>
+                        <th className=" p-1 text-center">مشخصات</th>
+                        <th className=" p-1 text-center ">تعداد</th>
+                        <th className="p-1 text-center ">طول</th>
+                        <th className="  p-1 text-center ">عرض</th>
+                        <th className=" p-1 text-center "> فی متر</th>
+                        <th className="  p-1 text-center 0">مبلغ</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -200,10 +190,10 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
                             {d.weight || 0}
                           </td>
                           <td className="border border-gray-300 p-1 text-center">
-                            {formatCurrency(d.price_per_unit || 0)}
+                            {d.price_per_unit || 0}
                           </td>
                           <td className="border border-gray-300 p-1 text-center font-semibold">
-                            {formatCurrency(d.money || 0)}
+                            {d.money || 0}
                           </td>
                         </tr>
                       ))}
@@ -218,42 +208,38 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
               <div className=" mt-3">
                 <div className="overflow-x-auto">
                   <table className="w-full text-xs border border-gray-300">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        <th className="border border-gray-300 p-1 text-center ">
-                          #
+                    <thead className="">
+                      <tr className="text-md font-semibold">
+                        <th className=" border-gray-300 p-1 text-center ">#</th>
+                        <th className=" border-gray-300 p-1 text-center">
+                          مشخصات
                         </th>
-                        <th className="border border-gray-300 p-1 text-center">
-                          نام
-                        </th>
-                        <th className="border border-gray-300 p-1 text-center ">
+                        <th className=" border-gray-300 p-1 text-center ">
                           تعداد
                         </th>
-                        <th className="border border-gray-300 p-1 text-center">
-                          قیمت فی واحد
+                        <th className=" border-gray-300 p-1 text-center">
+                          فی متر
                         </th>
-                        <th className="border border-gray-300 p-1 text-center ">
-                          مبلغ
-                        </th>
+                        <th className=" p-1 text-center ">مبلغ</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filledOffset.map((o, i) => (
                         <tr key={i} className="hover:bg-gray-50">
-                          <td className="border border-gray-300 p-1 text-center">
+                          <td className="border border-gray-300  text-center">
                             {i + 1}
                           </td>
-                          <td className="border border-gray-300 p-1 text-right">
+                          <td className="border border-gray-300 p-1 text-center">
                             {o.name || "—"}
                           </td>
                           <td className="border border-gray-300 p-1 text-center">
                             {o.quantity || 0}
                           </td>
                           <td className="border border-gray-300 p-1 text-center">
-                            {formatCurrency(o.price_per_unit || 0)}
+                            {o.price_per_unit || 0}
                           </td>
                           <td className="border border-gray-300 p-1 text-center font-semibold">
-                            {formatCurrency(o.money || 0)}
+                            {o.money || 0}
                           </td>
                         </tr>
                       ))}
@@ -264,12 +250,12 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
             )}
             <div className="flex items-center py-1 justify-between">
               {filledDigital.length > 0 && (
-                <div className="flex justify-end mt-1 text-xs font-bold text-green-700">
+                <div className="flex justify-end mt-1 text-xs font-bold ">
                   مجموع چاپ دیجیتال: {formatCurrency(total_money_digital)}
                 </div>
               )}
               {filledOffset.length > 0 && (
-                <div className="flex justify-end mt-1 text-xs font-bold text-purple-700">
+                <div className="flex justify-end mt-1 text-xs font-bold ">
                   مجموع چاپ افست: {formatCurrency(total_money_offset)}
                 </div>
               )}
@@ -284,31 +270,23 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
           </div>
 
           {/* Bill Summary */}
-          <div className="flex border-t h-[110px] border-gray-300 bg-gray-50">
+          <div className="flex  h-[110px] border-gray-300 bg-gray-50">
             {/* Left Half — Totals Section */}
-            <div className="w-1/2 border-l border-gray-300 p-4">
-              <div className="space-y-1 text-xs">
-                <div className="flex justify-between font-bold border-t border-gray-300 pt-1 text-sm">
+            <div className="w-1/2 p-4">
+              <div className="space-y-1 ">
+                <div className="flex justify-between font-bold  border-gray-300 pt-1">
                   <span>مجموع کل:</span>
-                  <span className="text-cyan-800">{formatCurrency(total)}</span>
+                  <span className="">{formatCurrency(total)}</span>
                 </div>
-                <div className="flex justify-between font-bold border-t border-gray-300 pt-1 text-sm">
+                <div className="flex justify-between font-bold  border-gray-300 pt-1 ">
                   <span>
                     <strong>دریافتی :</strong>
                   </span>
-                  <span className="text-green-600">
-                    {formatCurrency(order.recip || 0)}
-                  </span>
+                  <span className="">{formatCurrency(order.recip || 0)}</span>
                 </div>
-                <div className="flex justify-between font-bold border-t border-gray-300 pt-1">
-                  <span
-                    className={remained > 0 ? "text-red-600" : "text-green-600"}
-                  >
-                    باقیمانده:
-                  </span>
-                  <span
-                    className={remained > 0 ? "text-red-600" : "text-green-600"}
-                  >
+                <div className="flex justify-between font-bold  border-gray-300 pt-1">
+                  <span className={remained > 0 ? "" : ""}>باقیمانده:</span>
+                  <span className={remained > 0 ? "" : ""}>
                     {formatCurrency(remained)}
                   </span>
                 </div>
@@ -316,24 +294,7 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
             </div>
 
             {/* Right Half — Signature and Stamp Section */}
-            <div className="w-1/2 flex flex-col items-center justify-center p-4 text-center">
-              <div className="w-full   border-gray-400 h-28 flex flex-col items-center justify-center">
-                <p className="text-gray-600 text-sm font-semibold">
-                  محل امضاء و مُهر
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div
-            id="footer-area"
-            className="bg-gray-800 text-white p-3 text-center text-xs"
-          >
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <FaPhone className="text-cyan-300" />
-              <span> تماس: 0789384700 - 0799306437 - 0748852569</span>
-            </div>
+            <div className="w-1/2 flex flex-col items-center justify-center p-4 text-center"></div>
           </div>
         </div>
       </div>
@@ -361,7 +322,7 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
         @media print {
           @page {
             size: A5 portrait;
-            margin: 0;
+            margin: 5px;
           }
           body * {
             visibility: hidden;
@@ -377,16 +338,14 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
             width: 148mm !important;
             height: 210mm !important;
             margin: 0;
-            padding: 20px;
+            padding-right: 20px;
+            padding-left: 5px;
+            padding-top: 28mm; /* space from top */
+            padding-bottom: 28mm; /* space from bottom */
             box-shadow: none !important;
             border-radius: 0 !important;
           }
-          #header-area {
-            background-color: oklch(45% 0.085 224.283);
-          }
-          #footer-area {
-            background-color: oklch(27.8% 0.033 256.848);
-          }
+
           .print-hidden {
             display: none !important;
           }
