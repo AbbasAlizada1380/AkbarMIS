@@ -5,7 +5,7 @@ import DigitalSection from "./DigitalSection";
 import OffsetSection from "./OffsetSection";
 import BillSummary from "./BillSummary";
 import PrintOrderBill from "./PrintOrderBill";
-import { FaCheck } from "react-icons/fa";
+import { FaCheck, FaSpinner } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
 import Pagination from "../pagination/Pagination.jsx";
 import { IoIosPrint } from "react-icons/io";
@@ -111,6 +111,11 @@ const Orders = () => {
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [autoPrint, setAutoPrint] = useState(false);
   const [savedOrderForPrint, setSavedOrderForPrint] = useState(null);
+  
+  // Add loading state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmittedTime, setLastSubmittedTime] = useState(0);
+  const SUBMISSION_COOLDOWN = 3000; // 3 seconds cooldown between submissions
 
   const fetchOrders = async (page = 1) => {
     const data = await getOrders(page, 20);
@@ -177,7 +182,34 @@ const Orders = () => {
     });
   };
 
+  // Debounced save function to prevent multiple submissions
   const saveRecord = async (shouldPrint = false) => {
+    // Check if already submitting
+    if (isSubmitting) {
+      Swal.fire({
+        icon: 'info',
+        title: 'در حال پردازش',
+        text: 'لطفاً صبر کنید، در حال ثبت اطلاعات قبلی...',
+        timer: 2000,
+        showConfirmButton: false
+      });
+      return;
+    }
+
+    // Check cooldown period
+    const now = Date.now();
+    if (now - lastSubmittedTime < SUBMISSION_COOLDOWN) {
+      const remainingTime = Math.ceil((SUBMISSION_COOLDOWN - (now - lastSubmittedTime)) / 1000);
+      Swal.fire({
+        icon: 'warning',
+        title: 'لطفاً صبر کنید',
+        text: `برای ثبت سفارش جدید ${remainingTime} ثانیه دیگر صبر کنید`,
+        timer: 2000,
+        showConfirmButton: false
+      });
+      return;
+    }
+
     // Prepare the record by filtering out empty items
     const recordToSubmit = prepareRecordForSubmit(record);
     // Check if there are any filled items
@@ -193,6 +225,39 @@ const Orders = () => {
       return;
     }
 
+    // Check for duplicate submission by creating a unique hash of the record
+    const recordHash = JSON.stringify(recordToSubmit);
+    const lastSubmissionKey = 'lastOrderSubmission';
+    const lastSubmission = localStorage.getItem(lastSubmissionKey);
+    
+    if (lastSubmission === recordHash && !editMode) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'تکرار ثبت',
+        text: 'این سفارش قبلاً ثبت شده است. آیا مطمئنید که می‌خواهید دوباره ثبت کنید؟',
+        showCancelButton: true,
+        confirmButtonText: 'بله، ثبت کن',
+        cancelButtonText: 'لغو'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          proceedWithSubmission(recordToSubmit, shouldPrint);
+        }
+      });
+      return;
+    }
+
+    await proceedWithSubmission(recordToSubmit, shouldPrint);
+  };
+
+  // Separate function for actual submission
+  const proceedWithSubmission = async (recordToSubmit, shouldPrint) => {
+    setIsSubmitting(true);
+    setLastSubmittedTime(Date.now());
+    
+    // Store the record hash to prevent duplicate submissions
+    const recordHash = JSON.stringify(recordToSubmit);
+    localStorage.setItem('lastOrderSubmission', recordHash);
+
     try {
       let savedOrder;
 
@@ -202,6 +267,7 @@ const Orders = () => {
       } else {
         savedOrder = await createOrder(recordToSubmit);
       }
+      
       fetchOrders(currentPage);
 
       if (shouldPrint) {
@@ -230,8 +296,24 @@ const Orders = () => {
       } else {
         resetForm();
       }
+      
+      // Clear the submission record after successful submission
+      setTimeout(() => {
+        localStorage.removeItem('lastOrderSubmission');
+      }, SUBMISSION_COOLDOWN);
+
     } catch (err) {
-      // ... error handling ...
+      console.error('Submission error:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'خطا در ثبت',
+        text: 'خطایی در ثبت سفارش رخ داده است. لطفاً دوباره تلاش کنید.',
+        confirmButtonText: 'باشه'
+      });
+      
+      // Keep the record hash for retry
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -255,6 +337,7 @@ const Orders = () => {
     setEditingOrderId(null);
     setActiveSection("digital");
     setSavedOrderForPrint(null);
+    localStorage.removeItem('lastOrderSubmission');
   };
 
   const handleEditOrder = (order) => {
@@ -292,14 +375,13 @@ const Orders = () => {
   };
 
   const handleDeleteOrder = async (orderId) => {
-      try {
-        await deleteOrder(orderId);
-        Swal.fire("حذف شد!", "سفارش با موفقیت حذف شد.", "success");
-        fetchOrders(currentPage);
-      } catch (err) {
-        Swal.fire("خطا!", "حذف سفارش موفقیت‌آمیز نبود.", "error");
-      }
-    
+    try {
+      await deleteOrder(orderId);
+      Swal.fire("حذف شد!", "سفارش با موفقیت حذف شد.", "success");
+      fetchOrders(currentPage);
+    } catch (err) {
+      Swal.fire("خطا!", "حذف سفارش موفقیت‌آمیز نبود.", "error");
+    }
   };
 
   const handleViewBill = (order) => {
@@ -357,14 +439,6 @@ const Orders = () => {
       <div className="bg-white rounded-lg shadow-lg px-6 pb-6 pt-3 border border-gray-100">
         <div className="bg-white rounded-2xl   border-gray-200">
           <div className="flex items-center justify-between mb-8">
-            {/* <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <FaUser className="text-cyan-500 text-xl" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                معلومات مشتری
-              </h2>
-            </div> */}
             {editMode && (
               <button
                 onClick={resetForm}
@@ -389,6 +463,7 @@ const Orders = () => {
                   value={record.customer.name || ""}
                   onChange={handleCustomerChange}
                   className="w-full px-4 py-3 pl-12 border bg-gray-200 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200  text-gray-800 placeholder-gray-400"
+                  disabled={isSubmitting}
                 />
                 <FaUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
@@ -406,6 +481,7 @@ const Orders = () => {
                   value={record.customer.phone_number || ""}
                   onChange={handleCustomerChange}
                   className="w-full px-4 py-3 pl-12 border bg-gray-200 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200  text-gray-800 placeholder-gray-400"
+                  disabled={isSubmitting}
                 />
                 <FaPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
@@ -424,6 +500,7 @@ const Orders = () => {
                   value={record.digitalId || ""}
                   onChange={handleDigitalIdChange}
                   className="w-full px-4 py-3 pl-12 border bg-gray-200 border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 transition-all duration-200  text-gray-800 placeholder-gray-400"
+                  disabled={isSubmitting}
                 />
                 <FaIdCard className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
@@ -434,11 +511,12 @@ const Orders = () => {
         <div className="flex gap-4 mb-6 mt-4">
           <button
             onClick={() => setActiveSection("digital")}
+            disabled={isSubmitting}
             className={`flex items-center gap-3 px-6 py-3 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg ${
               activeSection === "digital"
                 ? "bg-cyan-800 text-white shadow-blue-200"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <FaPrint className="text-lg" />
             چاپ دیجیتال
@@ -446,11 +524,12 @@ const Orders = () => {
 
           <button
             onClick={() => setActiveSection("offset")}
+            disabled={isSubmitting}
             className={`flex items-center gap-3 px-6 py-3 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg ${
               activeSection === "offset"
                 ? "bg-cyan-800 text-white shadow-blue-200"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            }`}
+            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <FaPrint className="text-lg" />
             چاپ افست
@@ -461,13 +540,13 @@ const Orders = () => {
         <div className="transition-all duration-300">
           {activeSection === "digital" && (
             <div className=" ">
-              <DigitalSection record={record} setRecord={setRecord} />
+              <DigitalSection record={record} setRecord={setRecord} isSubmitting={isSubmitting} />
             </div>
           )}
 
           {activeSection === "offset" && (
             <div className="">
-              <OffsetSection record={record} setRecord={setRecord} />
+              <OffsetSection record={record} setRecord={setRecord} isSubmitting={isSubmitting} />
             </div>
           )}
         </div>
@@ -480,7 +559,7 @@ const Orders = () => {
 
       {/* Payment Section */}
       <div className="bg-white rounded-lg shadow-xl p-6 border border-gray-100">
-        <div className="flex   gap-x-6">
+        <div className="flex gap-x-6">
           <div className="flex items-center gap-x-4 flex-1">
             <div className="space-y-2 w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -493,6 +572,7 @@ const Orders = () => {
                   value={record.recip}
                   onChange={handleRecipChange}
                   className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 focus:border-transparent transition-all duration-200 bg-gray-200 text-gray-800 placeholder-gray-400"
+                  disabled={isSubmitting}
                 />
                 <FaMoneyBillWave className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
@@ -508,18 +588,19 @@ const Orders = () => {
                   placeholder="مبلغ باقیمانده"
                   value={record.remained}
                   readOnly
-                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 focus:border-transparent transition-all duration-200 bg-gray-200 text-gray-800 placeholder-gray-400cursor-not-allowed"
+                  className="w-full px-4 py-3 pl-12 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-cyan-800 focus:border-transparent transition-all duration-200 bg-gray-200 text-gray-800 placeholder-gray-400 cursor-not-allowed"
                 />
                 <FaMoneyBillWave className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               </div>
             </div>
           </div>
 
-          <div className="flex items-end  gap-2">
+          <div className="flex items-end gap-2">
             {/* Save Button */}
             <button
               onClick={() => saveRecord(false)}
               disabled={
+                isSubmitting ||
                 !record.customer.name.trim() ||
                 (filledDigitalCount === 0 && filledOffsetCount === 0)
               }
@@ -529,44 +610,76 @@ const Orders = () => {
                   : "flex items-center gap-2 text-sm bg-cyan-800 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl"
               } ${
                 !record.customer.name.trim() ||
-                (filledDigitalCount === 0 && filledOffsetCount === 0)
+                (filledDigitalCount === 0 && filledOffsetCount === 0) ||
+                isSubmitting
                   ? "opacity-50 cursor-not-allowed"
                   : "text-white"
               }`}
             >
-              <FaSave className="text-lg" />
-              {editMode ? "ویرایش اطلاعات" : "ذخیره اطلاعات"}
+              {isSubmitting ? (
+                <>
+                  <FaSpinner className="animate-spin text-lg" />
+                  در حال ثبت...
+                </>
+              ) : (
+                <>
+                  <FaSave className="text-lg" />
+                  {editMode ? "ویرایش اطلاعات" : "ذخیره اطلاعات"}
+                </>
+              )}
             </button>
 
             {/* Save and Print Button */}
             <button
               onClick={handleSaveAndPrint}
               disabled={
+                isSubmitting ||
                 !record.customer.name.trim() ||
                 (filledDigitalCount === 0 && filledOffsetCount === 0)
               }
               className={`flex items-center gap-x-2 text-sm bg-green-600 hover:bg-green-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105 ${
                 !record.customer.name.trim() ||
-                (filledDigitalCount === 0 && filledOffsetCount === 0)
+                (filledDigitalCount === 0 && filledOffsetCount === 0) ||
+                isSubmitting
                   ? "opacity-50 cursor-not-allowed"
                   : ""
               }`}
             >
-              <FaPrint className="text-lg" />
-              ذخیره و چاپ
+              {isSubmitting ? (
+                <>
+                  <FaSpinner className="animate-spin text-lg" />
+                  در حال ثبت...
+                </>
+              ) : (
+                <>
+                  <FaPrint className="text-lg" />
+                  ذخیره و چاپ
+                </>
+              )}
             </button>
           </div>
 
-          <div className="flex items-end ">
+          <div className="flex items-end">
             <button
               onClick={() => handleViewBill(record)}
-              className="flex items-center gap-x-2 text-sm bg-purple-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl   transform hover:scale-105"
+              disabled={isSubmitting}
+              className={`flex items-center gap-x-2 text-sm bg-purple-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105 ${
+                isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
             >
               <FaEye className="text-lg" />
               مشاهده بیل
             </button>
           </div>
         </div>
+
+        {/* Loading and status messages */}
+        {isSubmitting && (
+          <div className="mt-5 flex items-center gap-2 text-blue-600">
+            <FaSpinner className="animate-spin" />
+            <span className="text-sm">در حال ثبت سفارش، لطفاً صبر کنید...</span>
+          </div>
+        )}
 
         {/* Validation message */}
         {(!record.customer.name.trim() ||
@@ -591,7 +704,7 @@ const Orders = () => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-center  border border-gray-300">
+          <table className="w-full text-center border border-gray-300">
             <thead className="bg-cyan-800 text-gray-50">
               <tr>
                 <th className="border border-gray-100 px-4 py-2"> شماره بیل</th>
@@ -645,39 +758,40 @@ const Orders = () => {
                     <td className="border border-gray-300 px-4 py-2">
                       {new Date(order.createdAt).toLocaleDateString("fa-AF")}
                     </td>
-                    <td className="border  border-gray-300  px-4 py-2">
+                    <td className="border border-gray-300 px-4 py-2">
                       <div className="w-full flex items-center justify-center text-cyan-800">
                         {order.isDelivered ? <FaCheck /> : <ImCross />}
                       </div>
                     </td>
                     <td className="border-b border-gray-300 flex items-center justify-center py-2">
-                      <div className="flex  gap-x-2">
+                      <div className="flex gap-x-2">
                         <button
                           onClick={() => handleViewBill(order)}
-                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
+                          disabled={isSubmitting}
+                          className={`flex items-center justify-center h-8 w-8 cursor-pointer border border-cyan-800 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
                           <FaEye className="text-cyan-800" size={20} />
                         </button>
                         <button
                           onClick={() => handleEditOrder(order)}
-                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
+                          disabled={isSubmitting}
+                          className={`flex items-center justify-center h-8 w-8 cursor-pointer border border-cyan-800 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
                           <FaEdit className="text-green-600" size={20} />
                         </button>
                         <button
                           onClick={() => handlePrintBill(order)}
-                          className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
+                          disabled={isSubmitting}
+                          className={`flex items-center justify-center h-8 w-8 cursor-pointer border border-cyan-800 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                          }`}
                         >
                           <FaPrint className="text-blue-600" size={20} />
                         </button>
-                        {/* {currentUser.role == "admin" && (
-                          <button
-                            onClick={() => handleDeleteOrder(order.id)}
-                            className="flex items-center justify-center h-8 w-8 cursor-pointer  border border-cyan-800  rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl "
-                          >
-                            <FaTimes className="text-red-600" size={20} />
-                          </button>
-                        )} */}
                       </div>
                     </td>
                   </tr>

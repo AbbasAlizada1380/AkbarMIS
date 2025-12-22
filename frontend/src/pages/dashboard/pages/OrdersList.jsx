@@ -29,6 +29,7 @@ import {
 } from "react-icons/fa";
 import SearchBar from "../searching/SearchBar.jsx";
 import { useSelector } from "react-redux";
+import Loading from "../../loading.jsx";
 const OrdersList = () => {
   const [record, setRecord] = useState({
     customer: { name: "", phone_number: "" },
@@ -50,13 +51,16 @@ const OrdersList = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeSection, setActiveSection] = useState("digital");
   const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [editingOrderId, setEditingOrderId] = useState(null);
 
   const fetchOrders = async (page = 1) => {
+    setLoading(true)
     const data = await getOrders(page, 20);
     setOrders(data.orders);
     setCurrentPage(data.currentPage);
     setTotalPages(data.totalPages);
+    setLoading(false)
   };
 
   const onPageChange = (pageNumber) => {
@@ -122,7 +126,9 @@ const OrdersList = () => {
       console.error("Error paying remaining:", err);
     }
   };
-
+if(loading){
+  return(<Loading/>)
+}
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-6 space-y-8">
       {/* Header Section */}
