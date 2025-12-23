@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Swal from "sweetalert2";
 import DigitalSection from "./DigitalSection";
 import OffsetSection from "./OffsetSection";
 import BillSummary from "./BillSummary";
 import PrintOrderBill from "./PrintOrderBill";
-import { FaCheck, FaSpinner } from "react-icons/fa";
+import SearchBar from "../searching/SearchBar.jsx"; // Import the SearchBar component
+import { FaCheck, FaSpinner, FaSearch, FaUndo } from "react-icons/fa";
 import { ImCross } from "react-icons/im";
 import Pagination from "../pagination/Pagination.jsx";
 import { IoIosPrint } from "react-icons/io";
@@ -32,6 +33,7 @@ import { useSelector } from "react-redux";
 
 const Orders = () => {
   const { currentUser } = useSelector((state) => state.user);
+
   // Default empty digital item
   const defaultDigitalItem = {
     name: "",
@@ -111,23 +113,72 @@ const Orders = () => {
   const [editingOrderId, setEditingOrderId] = useState(null);
   const [autoPrint, setAutoPrint] = useState(false);
   const [savedOrderForPrint, setSavedOrderForPrint] = useState(null);
-  
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   // Add loading state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lastSubmittedTime, setLastSubmittedTime] = useState(0);
   const SUBMISSION_COOLDOWN = 3000; // 3 seconds cooldown between submissions
 
+  // Create a ref for the SearchBar component
+  const searchBarRef = useRef();
+
   const fetchOrders = async (page = 1) => {
-    const data = await getOrders(page, 20);
-    setOrders(data.orders);
-    setCurrentPage(data.currentPage);
-    setTotalPages(data.totalPages);
+    try {
+      const data = await getOrders(page, 20);
+      setOrders(data.orders);
+      setCurrentPage(data.currentPage);
+      setTotalPages(data.totalPages);
+      setIsSearching(false);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      Swal.fire("خطا!", "دریافت لیست سفارشات با مشکل مواجه شد.", "error");
+    }
+  };
+
+  const handleSearchResults = (results) => {
+    if (results && results.length > 0) {
+      setSearchResults(results);
+      setIsSearching(true);
+      // Store search results in a separate state
+      setOrders(results);
+    } else {
+      setIsSearching(false);
+      // If no results, show a message
+      setOrders([]);
+      setSearchResults([]);
+      Swal.fire({
+        icon: "info",
+        title: "نتیجه‌ای یافت نشد",
+        text: "هیچ سفارشی مطابق با جستجوی شما یافت نشد.",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+    }
+  };
+
+  const clearSearch = () => {
+    if (searchBarRef.current) {
+      searchBarRef.current.reset();
+    }
+    setSearchQuery("");
+    setSearchResults([]);
+    setIsSearching(false);
+    fetchOrders(currentPage);
+  };
+
+  const handleSearchQueryChange = (query) => {
+    setSearchQuery(query);
   };
 
   const onPageChange = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
-      fetchOrders(pageNumber);
+      if (!isSearching) {
+        fetchOrders(pageNumber);
+      }
     }
   };
 
@@ -187,11 +238,11 @@ const Orders = () => {
     // Check if already submitting
     if (isSubmitting) {
       Swal.fire({
-        icon: 'info',
-        title: 'در حال پردازش',
-        text: 'لطفاً صبر کنید، در حال ثبت اطلاعات قبلی...',
+        icon: "info",
+        title: "در حال پردازش",
+        text: "لطفاً صبر کنید، در حال ثبت اطلاعات قبلی...",
         timer: 2000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
       return;
     }
@@ -199,13 +250,15 @@ const Orders = () => {
     // Check cooldown period
     const now = Date.now();
     if (now - lastSubmittedTime < SUBMISSION_COOLDOWN) {
-      const remainingTime = Math.ceil((SUBMISSION_COOLDOWN - (now - lastSubmittedTime)) / 1000);
+      const remainingTime = Math.ceil(
+        (SUBMISSION_COOLDOWN - (now - lastSubmittedTime)) / 1000
+      );
       Swal.fire({
-        icon: 'warning',
-        title: 'لطفاً صبر کنید',
+        icon: "warning",
+        title: "لطفاً صبر کنید",
         text: `برای ثبت سفارش جدید ${remainingTime} ثانیه دیگر صبر کنید`,
         timer: 2000,
-        showConfirmButton: false
+        showConfirmButton: false,
       });
       return;
     }
@@ -227,17 +280,17 @@ const Orders = () => {
 
     // Check for duplicate submission by creating a unique hash of the record
     const recordHash = JSON.stringify(recordToSubmit);
-    const lastSubmissionKey = 'lastOrderSubmission';
+    const lastSubmissionKey = "lastOrderSubmission";
     const lastSubmission = localStorage.getItem(lastSubmissionKey);
-    
+
     if (lastSubmission === recordHash && !editMode) {
       Swal.fire({
-        icon: 'warning',
-        title: 'تکرار ثبت',
-        text: 'این سفارش قبلاً ثبت شده است. آیا مطمئنید که می‌خواهید دوباره ثبت کنید؟',
+        icon: "warning",
+        title: "تکرار ثبت",
+        text: "این سفارش قبلاً ثبت شده است. آیا مطمئنید که می‌خواهید دوباره ثبت کنید؟",
         showCancelButton: true,
-        confirmButtonText: 'بله، ثبت کن',
-        cancelButtonText: 'لغو'
+        confirmButtonText: "بله، ثبت کن",
+        cancelButtonText: "لغو",
       }).then((result) => {
         if (result.isConfirmed) {
           proceedWithSubmission(recordToSubmit, shouldPrint);
@@ -253,24 +306,33 @@ const Orders = () => {
   const proceedWithSubmission = async (recordToSubmit, shouldPrint) => {
     setIsSubmitting(true);
     setLastSubmittedTime(Date.now());
-    
+
     // Store the record hash to prevent duplicate submissions
     const recordHash = JSON.stringify(recordToSubmit);
-    localStorage.setItem('lastOrderSubmission', recordHash);
+    localStorage.setItem("lastOrderSubmission", recordHash);
 
     try {
       let savedOrder;
 
       if (editMode) {
         savedOrder = await updateOrder(editingOrderId, recordToSubmit);
-        Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
+        // Swal.fire("موفق", "بیل با موفقیت ویرایش شد", "success");
       } else {
+        console.log(recordToSubmit);
+        
         savedOrder = await createOrder(recordToSubmit);
       }
-      
-      fetchOrders(currentPage);
+
+      // Refresh orders list
+      if (isSearching) {
+        clearSearch(); // Clear search and show all orders
+      } else {
+        fetchOrders(currentPage);
+      }
 
       if (shouldPrint) {
+        console.log(savedOrder);
+        
         // Use the original record data for printing since it has all the details
         const orderForPrint = {
           ...savedOrder, // This gives us the ID and any other backend data
@@ -289,28 +351,27 @@ const Orders = () => {
           createdAt: new Date().toISOString(), // Add current date for the bill
         };
 
-        setSavedOrderForPrint(orderForPrint);
-        setSelectedOrder(orderForPrint);
+        setSavedOrderForPrint(savedOrder);
+        setSelectedOrder(savedOrder);
         setIsBillOpen(true);
         setAutoPrint(true);
       } else {
         resetForm();
       }
-      
+
       // Clear the submission record after successful submission
       setTimeout(() => {
-        localStorage.removeItem('lastOrderSubmission');
+        localStorage.removeItem("lastOrderSubmission");
       }, SUBMISSION_COOLDOWN);
-
     } catch (err) {
-      console.error('Submission error:', err);
+      console.error("Submission error:", err);
       Swal.fire({
-        icon: 'error',
-        title: 'خطا در ثبت',
-        text: 'خطایی در ثبت سفارش رخ داده است. لطفاً دوباره تلاش کنید.',
-        confirmButtonText: 'باشه'
+        icon: "error",
+        title: "خطا در ثبت",
+        text: "خطایی در ثبت سفارش رخ داده است. لطفاً دوباره تلاش کنید.",
+        confirmButtonText: "باشه",
       });
-      
+
       // Keep the record hash for retry
     } finally {
       setIsSubmitting(false);
@@ -337,7 +398,7 @@ const Orders = () => {
     setEditingOrderId(null);
     setActiveSection("digital");
     setSavedOrderForPrint(null);
-    localStorage.removeItem('lastOrderSubmission');
+    localStorage.removeItem("lastOrderSubmission");
   };
 
   const handleEditOrder = (order) => {
@@ -378,7 +439,17 @@ const Orders = () => {
     try {
       await deleteOrder(orderId);
       Swal.fire("حذف شد!", "سفارش با موفقیت حذف شد.", "success");
-      fetchOrders(currentPage);
+
+      // Refresh the current view
+      if (isSearching) {
+        // If in search mode, remove the deleted order from search results
+        setOrders((prev) => prev.filter((order) => order.id !== orderId));
+        setSearchResults((prev) =>
+          prev.filter((order) => order.id !== orderId)
+        );
+      } else {
+        fetchOrders(currentPage);
+      }
     } catch (err) {
       Swal.fire("خطا!", "حذف سفارش موفقیت‌آمیز نبود.", "error");
     }
@@ -516,7 +587,7 @@ const Orders = () => {
               activeSection === "digital"
                 ? "bg-cyan-800 text-white shadow-blue-200"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             <FaPrint className="text-lg" />
             چاپ دیجیتال
@@ -529,7 +600,7 @@ const Orders = () => {
               activeSection === "offset"
                 ? "bg-cyan-800 text-white shadow-blue-200"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-            } ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+            } ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
           >
             <FaPrint className="text-lg" />
             چاپ افست
@@ -540,13 +611,21 @@ const Orders = () => {
         <div className="transition-all duration-300">
           {activeSection === "digital" && (
             <div className=" ">
-              <DigitalSection record={record} setRecord={setRecord} isSubmitting={isSubmitting} />
+              <DigitalSection
+                record={record}
+                setRecord={setRecord}
+                isSubmitting={isSubmitting}
+              />
             </div>
           )}
 
           {activeSection === "offset" && (
             <div className="">
-              <OffsetSection record={record} setRecord={setRecord} isSubmitting={isSubmitting} />
+              <OffsetSection
+                record={record}
+                setRecord={setRecord}
+                isSubmitting={isSubmitting}
+              />
             </div>
           )}
         </div>
@@ -664,7 +743,7 @@ const Orders = () => {
               onClick={() => handleViewBill(record)}
               disabled={isSubmitting}
               className={`flex items-center gap-x-2 text-sm bg-purple-700 text-white px-4 py-3.5 rounded-md font-semibold transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl transform hover:scale-105 ${
-                isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                isSubmitting ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
               <FaEye className="text-lg" />
@@ -694,13 +773,45 @@ const Orders = () => {
         )}
       </div>
 
-      {/* Orders Table */}
+      {/* Orders Table - With Search Bar */}
       <div className="bg-white rounded-lg shadow-lg border border-gray-100">
-        <div className="flex items-center gap-3  p-6">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <FaFileInvoice className="text-cyan-800 text-xl" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <FaFileInvoice className="text-cyan-800 text-xl" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-800">لیست سفارشات</h2>
+              <p className="text-gray-600 text-sm">
+                {isSearching ? (
+                  <span className="text-cyan-700">
+                    نتایج جستجو: {orders.length} سفارش یافت شد
+                  </span>
+                ) : (
+                  "مدیریت و مشاهده تمام سفارشات ثبت شده"
+                )}
+              </p>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-800">لیست سفارشات</h2>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <SearchBar
+              ref={searchBarRef}
+              onResults={handleSearchResults}
+              query={searchQuery}
+              onQueryChange={handleSearchQueryChange}
+            />
+
+            {isSearching && (
+              <button
+                onClick={clearSearch}
+                className="flex items-center gap-2 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200"
+              >
+                <FaUndo className="text-sm" />
+                نمایش همه
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -769,7 +880,7 @@ const Orders = () => {
                           onClick={() => handleViewBill(order)}
                           disabled={isSubmitting}
                           className={`flex items-center justify-center h-8 w-8 cursor-pointer border border-cyan-800 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                            isSubmitting ? "opacity-50 cursor-not-allowed" : ""
                           }`}
                         >
                           <FaEye className="text-cyan-800" size={20} />
@@ -778,7 +889,7 @@ const Orders = () => {
                           onClick={() => handleEditOrder(order)}
                           disabled={isSubmitting}
                           className={`flex items-center justify-center h-8 w-8 cursor-pointer border border-cyan-800 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                            isSubmitting ? "opacity-50 cursor-not-allowed" : ""
                           }`}
                         >
                           <FaEdit className="text-green-600" size={20} />
@@ -787,7 +898,7 @@ const Orders = () => {
                           onClick={() => handlePrintBill(order)}
                           disabled={isSubmitting}
                           className={`flex items-center justify-center h-8 w-8 cursor-pointer border border-cyan-800 rounded-md font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-                            isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                            isSubmitting ? "opacity-50 cursor-not-allowed" : ""
                           }`}
                         >
                           <FaPrint className="text-blue-600" size={20} />
@@ -798,18 +909,39 @@ const Orders = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="10" className="text-gray-500 py-4">
-                    هیچ سفارشی وجود ندارد
+                  <td colSpan="10" className="text-gray-500 py-8">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      {isSearching ? (
+                        <>
+                          <FaSearch className="text-gray-400 text-3xl" />
+                          <span className="text-lg">
+                            نتیجه‌ای برای جستجوی شما یافت نشد
+                          </span>
+                          <button
+                            onClick={clearSearch}
+                            className="mt-2 text-cyan-800 hover:text-cyan-900 font-medium"
+                          >
+                            مشاهده همه سفارشات
+                          </button>
+                        </>
+                      ) : (
+                        "هیچ سفارشی وجود ندارد"
+                      )}
+                    </div>
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
+
+          {/* Show pagination only when not searching */}
+          {!isSearching && orders.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
+          )}
         </div>
       </div>
 

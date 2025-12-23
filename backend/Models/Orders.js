@@ -50,7 +50,7 @@ export const Digital = sequelize.define(
   "Digital",
   {
     name: { type: DataTypes.STRING, allowNull: false },
-    quantity: DataTypes.INTEGER,
+    quantity: DataTypes.FLOAT,
     price_per_unit: DataTypes.FLOAT,
     money: DataTypes.FLOAT,
     height: DataTypes.FLOAT,
@@ -65,7 +65,7 @@ export const Offset = sequelize.define(
   "Offset",
   {
     name: { type: DataTypes.STRING, allowNull: false },
-    quantity: DataTypes.INTEGER,
+    quantity: DataTypes.FLOAT,
     money: DataTypes.FLOAT,
     price_per_unit: DataTypes.FLOAT,
   },

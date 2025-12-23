@@ -85,7 +85,9 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
     : `${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
 
   function formatToJalali(dateString) {
-    const date = new Date(dateString);
+    // Use today's date if input is empty
+    const date =
+      !dateString || dateString === "0" ? new Date() : new Date(dateString);
 
     // Convert to Jalali
     const { jy, jm, jd } = jalaali.toJalaali(
@@ -99,7 +101,7 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
     const minutes = date.getMinutes();
     const ampm = hours >= 12 ? "بعدازظهر" : "قبل‌ازظهر";
     hours = hours % 12;
-    hours = hours === 0 ? 12 : hours; // convert 0 to 12
+    hours = hours === 0 ? 12 : hours;
 
     // Pad numbers
     const pad = (n) => (n < 10 ? "0" + n : n);
@@ -218,7 +220,7 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
                           تعداد
                         </th>
                         <th className=" border-gray-300 p-1 text-center">
-                          فی متر
+                          فی واحد
                         </th>
                         <th className=" p-1 text-center ">مبلغ</th>
                       </tr>
@@ -276,7 +278,7 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
               <div className="space-y-1 ">
                 <div className="flex justify-between font-bold  border-gray-300 pt-1">
                   <span>مجموع کل:</span>
-                  <span className="">{formatCurrency(total)}</span>
+                  <span className="">{formatCurrency(order.total)}</span>
                 </div>
                 <div className="flex justify-between font-bold  border-gray-300 pt-1 ">
                   <span>
@@ -338,10 +340,10 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
             width: 148mm !important;
             height: 210mm !important;
             margin: 0;
-            padding-right: 20px;
+            padding-right: 25px;
             padding-left: 5px;
-            padding-top: 28mm; /* space from top */
-            padding-bottom: 28mm; /* space from bottom */
+            padding-top: 20mm; /* space from top */
+            padding-bottom: 23mm; /* space from bottom */
             box-shadow: none !important;
             border-radius: 0 !important;
           }

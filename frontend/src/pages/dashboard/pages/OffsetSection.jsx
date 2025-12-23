@@ -12,25 +12,26 @@ const OffsetSection = ({ record, setRecord }) => {
     });
   };
 
-  const updateOffset = (index, field, value) => {
-    const updated = [...record.offset];
+const updateOffset = (index, field, value) => {
+  const updated = [...record.offset];
 
-    // Convert numeric fields to number
-    if (["quantity", "price_per_unit", "money"].includes(field)) {
-      updated[index][field] = parseFloat(value) || 0;
-    } else if (field === "name") {
-      updated[index][field] = value;
-    }
+  // Convert numeric fields to number
+  if (["quantity", "price_per_unit", "money"].includes(field)) {
+    updated[index][field] = parseFloat(value) || 0;
+  } else if (field === "name") {
+    updated[index][field] = value;
+  }
 
-    // Only calculate money automatically if money field wasn't the one being updated
-    if (field !== "money") {
-      const quantity = updated[index].quantity;
-      const price_per_unit = updated[index].price_per_unit;
-      updated[index].money = quantity * price_per_unit;
-    }
+  // Only calculate money automatically if money field wasn't the one being updated
+  if (field !== "money") {
+    const quantity = updated[index].quantity;
+    const price_per_unit = updated[index].price_per_unit;
+    // Calculate and round the money value
+    updated[index].money = Math.round(quantity * price_per_unit);
+  }
 
-    setRecord({ ...record, offset: updated });
-  };
+  setRecord({ ...record, offset: updated });
+};
 
   const deleteOffset = (index) => {
     const updated = record.offset.filter((_, i) => i !== index);

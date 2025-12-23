@@ -60,7 +60,7 @@ export const createOrder = async (orderData) => {
 export const updateOrder = async (id, orderData) => {
   try {
     const res = await axios.put(`${BASE_URL}/orders/${id}`, orderData);
-    showAlert("موفق", "بیل با موفقیت ویرایش شد ✏️", "success");
+    // showAlert("موفق", "بیل با موفقیت ویرایش شد ✏️", "success");
     return res.data;
   } catch (error) {
     console.error(error);

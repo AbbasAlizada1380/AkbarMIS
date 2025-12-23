@@ -105,27 +105,41 @@ const OrdersList = () => {
     setIsBillOpen(false);
     setSelectedOrder(null);
   };
-  const handlePayRemaining = async (order) => {
-    try {
-      const updated = await payRemaining(order);
+const handlePayRemaining = async (order) => {
+  try {
+    const updated = await payRemaining(order);
 
-      // Only update state if we got a valid response
-      if (updated && updated.id) {
-        // Update main orders
-        setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
+    if (updated && updated.id) {
+      // Extract the server-side remaining amount
+      const serverRemaining =
+        updated.remaining_amount || updated.remained || 0;
 
-        // Update search result if it exists
-        setSearchResult((prev) =>
-          prev?.length
-            ? prev.map((o) => (o.id === order.id ? updated : o))
-            : prev
-        );
-      }
-      // If user canceled (updated is null), do nothing
-    } catch (err) {
-      console.error("Error paying remaining:", err);
+      // Create a function to update both states
+      const updateOrderState = (prevOrder) => ({
+        ...prevOrder,
+        remained: serverRemaining,
+        recip: updated.total,
+        total: updated.total || prevOrder.total - serverRemaining,
+        payment_status: serverRemaining <= 0 ? "paid" : "partial",
+        updated_at: updated.updated_at || new Date().toISOString(),
+      });
+
+      // Update main orders
+      setOrders((prev) =>
+        prev.map((o) => (o.id === order.id ? updateOrderState(o) : o))
+      );
+
+      // Update search result if it exists
+      setSearchResult((prev) =>
+        prev?.length
+          ? prev.map((o) => (o.id === order.id ? updateOrderState(o) : o))
+          : prev
+      );
     }
-  };
+  } catch (err) {
+    console.error("Error paying remaining:", err);
+  }
+};
 if(loading){
   return(<Loading/>)
 }
