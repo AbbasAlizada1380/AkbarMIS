@@ -289,7 +289,7 @@ const PrintBillOrder = ({ isOpen, onClose, order, autoPrint }) => {
                 <div className="flex justify-between font-bold  border-gray-300 pt-1">
                   <span className={remained > 0 ? "" : ""}>باقیمانده:</span>
                   <span className={remained > 0 ? "" : ""}>
-                    {formatCurrency(remained)}
+                    {formatCurrency(order.remained)}
                   </span>
                 </div>
               </div>
